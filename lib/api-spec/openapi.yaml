@@ -310,6 +310,29 @@ paths:
         "404":
           description: Member not found
 
+  /groups/{groupId}/members/me:
+    delete:
+      operationId: leaveGroup
+      tags: [groups]
+      summary: Leave a group (self)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Successfully left the group
+        "400":
+          description: Cannot leave — you are the only admin
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
   /groups/{groupId}/invites:
     get:
       operationId: listGroupInvites

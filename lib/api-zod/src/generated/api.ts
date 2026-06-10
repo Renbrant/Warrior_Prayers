@@ -279,6 +279,14 @@ export const RemoveGroupMemberParams = zod.object({
 
 
 /**
+ * @summary Leave a group (self)
+ */
+export const LeaveGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+
+/**
  * @summary List all invites for a group (admin only)
  */
 export const ListGroupInvitesParams = zod.object({

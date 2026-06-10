@@ -550,4 +550,62 @@ router.delete(
   },
 );
 
+// DELETE /groups/:groupId/members/me — leave group (self)
+router.delete(
+  "/groups/:groupId/members/me",
+  syncUserFromClerk,
+  requireAuth,
+  requireGroupMember,
+  async (req: GroupAuthRequest, res) => {
+    try {
+      const groupId = req.groupId!;
+      const dbUserId = req.dbUserId!;
+      const memberRole = req.memberRole!;
+
+      if (memberRole === "admin") {
+        const [adminCount] = await db
+          .select({ cnt: count() })
+          .from(groupMembersTable)
+          .where(
+            and(
+              eq(groupMembersTable.groupId, groupId),
+              eq(groupMembersTable.role, "admin"),
+              eq(groupMembersTable.status, "active"),
+            ),
+          );
+
+        if (Number(adminCount?.cnt ?? 0) <= 1) {
+          res.status(400).json({
+            error: "You are the only admin. Promote another member to admin before leaving.",
+          });
+          return;
+        }
+      }
+
+      await db
+        .update(groupMembersTable)
+        .set({ status: "removed" })
+        .where(
+          and(
+            eq(groupMembersTable.groupId, groupId),
+            eq(groupMembersTable.userId, dbUserId),
+          ),
+        );
+
+      await db.insert(auditLogsTable).values({
+        userId: dbUserId,
+        groupId,
+        action: "member_left",
+        entityType: "prayer_group",
+        entityId: groupId,
+      });
+
+      res.status(204).send();
+    } catch (err) {
+      req.log.error({ err }, "Failed to leave group");
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
 export default router;

@@ -30,18 +30,18 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
 
-  const { data: user, isLoading: isUserLoading } = useGetMe({
+  const { data: user, isLoading: isUserLoading, isError: isUserError, refetch: refetchUser } = useGetMe({
     query: { queryKey: getGetMeQueryKey() }
   });
 
-  const { data: summary, isLoading: isSummaryLoading } = useGetDashboardSummary({
+  const { data: summary, isLoading: isSummaryLoading, isError: isSummaryError, refetch: refetchSummary } = useGetDashboardSummary({
     query: {
       queryKey: getGetDashboardSummaryQueryKey(),
       enabled: !!user?.isProfileComplete
     }
   });
 
-  const { data: groups, isLoading: isGroupsLoading } = useListMyGroups({
+  const { data: groups, isLoading: isGroupsLoading, isError: isGroupsError, refetch: refetchGroups } = useListMyGroups({
     query: {
       queryKey: getListMyGroupsQueryKey(),
       enabled: !!user?.isProfileComplete
@@ -53,6 +53,23 @@ export default function Dashboard() {
       setLocation("/complete-profile");
     }
   }, [user, setLocation]);
+
+  if (isUserError || isSummaryError || isGroupsError) {
+    return (
+      <div className="p-10 flex flex-col items-center gap-4 text-center">
+        <AlertCircle className="w-10 h-10 text-destructive" />
+        <p className="text-muted-foreground">Failed to load dashboard. Please try again.</p>
+        <Button
+          variant="outline"
+          onClick={() => { void refetchUser(); void refetchSummary(); void refetchGroups(); }}
+          className="rounded-full"
+          data-testid="btn-retry-dashboard"
+        >
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   if (isUserLoading || isSummaryLoading) {
     return (

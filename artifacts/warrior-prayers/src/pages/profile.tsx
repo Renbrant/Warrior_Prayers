@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { useClerk } from "@clerk/react";
+import { useClerk, useUser } from "@clerk/react";
 import {
   useGetMe,
   useUpdateMe,
@@ -40,6 +40,61 @@ const profileSchema = z.object({
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
+
+function ConnectedAccountsList({
+  userEmail,
+  primaryProvider,
+}: {
+  userEmail: string | null;
+  primaryProvider: string | null;
+}) {
+  const { user: clerkUser } = useUser();
+
+  const externalAccounts = clerkUser?.externalAccounts ?? [];
+
+  if (externalAccounts.length > 0) {
+    return (
+      <ul className="space-y-2">
+        {externalAccounts.map((acct) => (
+          <li
+            key={acct.id}
+            className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-3"
+          >
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold uppercase">
+              {acct.provider.slice(0, 2)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground capitalize">{acct.provider}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {acct.emailAddress ?? userEmail ?? ""}
+              </p>
+            </div>
+            <span className="text-xs text-green-500 font-semibold">Connected</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (primaryProvider) {
+    return (
+      <ul className="space-y-2">
+        <li className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-3">
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold uppercase">
+            {primaryProvider.slice(0, 2)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground capitalize">{primaryProvider}</p>
+            <p className="text-xs text-muted-foreground truncate">{userEmail ?? ""}</p>
+          </div>
+          <span className="text-xs text-green-500 font-semibold">Connected</span>
+        </li>
+      </ul>
+    );
+  }
+
+  return <p className="text-sm text-muted-foreground">No connected accounts.</p>;
+}
 
 function UserAvatar({ name, photoUrl }: { name: string | null | undefined; photoUrl: string | null | undefined }) {
   const initials = name
@@ -319,20 +374,7 @@ export default function Profile() {
 
         <div className="mb-6">
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Connected Accounts</p>
-          {user?.primaryAuthProvider ? (
-            <div className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-3">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold uppercase">
-                {user.primaryAuthProvider.slice(0, 2)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground capitalize">{user.primaryAuthProvider}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-              </div>
-              <span className="text-xs text-green-500 font-semibold">Connected</span>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No auth provider linked.</p>
-          )}
+          <ConnectedAccountsList userEmail={user?.email ?? null} primaryProvider={user?.primaryAuthProvider ?? null} />
         </div>
 
         <AlertDialog>

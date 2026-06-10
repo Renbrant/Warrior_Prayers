@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { notificationsTable } from "@workspace/db";
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull, desc, count } from "drizzle-orm";
 import { syncUserFromClerk, requireAuth } from "../lib/auth";
 import type { AuthenticatedRequest } from "../lib/auth";
 
@@ -31,14 +31,24 @@ router.get(
     try {
       const dbUserId = req.dbUserId!;
 
+      const [unreadResult] = await db
+        .select({ cnt: count() })
+        .from(notificationsTable)
+        .where(
+          and(
+            eq(notificationsTable.userId, dbUserId),
+            isNull(notificationsTable.readAt),
+          ),
+        );
+
+      const unreadCount = Number(unreadResult?.cnt ?? 0);
+
       const notifications = await db
         .select()
         .from(notificationsTable)
         .where(eq(notificationsTable.userId, dbUserId))
         .orderBy(desc(notificationsTable.createdAt))
-        .limit(100);
-
-      const unreadCount = notifications.filter((n) => !n.readAt).length;
+        .limit(200);
 
       res.json({
         notifications: notifications.map(formatNotification),

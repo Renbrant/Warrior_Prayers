@@ -1,8 +1,26 @@
+import { useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { useGetGroup, useListGroupMembers, getGetGroupQueryKey } from "@workspace/api-client-react";
-import { Users, MapPin, Church, BookOpen, Settings, UserPlus, Plus, Flame, ArrowLeft } from "lucide-react";
+import {
+  useGetGroup,
+  useListGroupMembers,
+  useLeaveGroup,
+  getGetGroupQueryKey,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Users, MapPin, Church, BookOpen, Settings, UserPlus, Plus, Flame, ArrowLeft, LogOut, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 function RoleBadge({ role }: { role: string }) {
   const colors: Record<string, string> = {
@@ -34,13 +52,33 @@ function MemberAvatar({ name, photoUrl }: { name: string | null; photoUrl: strin
 export default function GroupDashboard() {
   const { groupId } = useParams<{ groupId: string }>();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
-  const { data: group, isLoading: isGroupLoading } = useGetGroup(groupId!, {
+  const { data: group, isLoading: isGroupLoading, isError: isGroupError, refetch: refetchGroup } = useGetGroup(groupId!, {
     query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId },
   });
 
   const { data: members, isLoading: isMembersLoading } = useListGroupMembers(groupId!, {
     query: { queryKey: [`/groups/${groupId}/members`] as const, enabled: !!groupId },
+  });
+
+  const leaveGroup = useLeaveGroup({
+    mutation: {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["/groups"] });
+        toast({ title: "Left group", description: "You have left the group." });
+        setLocation("/app/dashboard");
+      },
+      onError: (err: unknown) => {
+        const msg =
+          err && typeof err === "object" && "message" in err
+            ? String((err as { message: string }).message)
+            : "Could not leave the group.";
+        toast({ title: "Error", description: msg, variant: "destructive" });
+      },
+    },
   });
 
   const isAdmin = group?.myRole === "admin";
@@ -53,6 +91,18 @@ export default function GroupDashboard() {
         <div className="grid sm:grid-cols-3 gap-4">
           {[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-3xl" />)}
         </div>
+      </div>
+    );
+  }
+
+  if (isGroupError) {
+    return (
+      <div className="p-10 flex flex-col items-center gap-4 text-center">
+        <AlertCircle className="w-10 h-10 text-destructive" />
+        <p className="text-muted-foreground">Failed to load group. Please try again.</p>
+        <Button variant="outline" onClick={() => void refetchGroup()} className="rounded-full" data-testid="btn-retry-group">
+          <RefreshCw className="w-4 h-4 mr-2" /> Try Again
+        </Button>
       </div>
     );
   }
@@ -132,6 +182,15 @@ export default function GroupDashboard() {
                 <Settings className="w-4 h-4 mr-1.5" /> Settings
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLeaveDialog(true)}
+              className="rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
+              data-testid="btn-leave-group"
+            >
+              <LogOut className="w-4 h-4 mr-1.5" /> Leave Group
+            </Button>
           </div>
         </div>
       </header>
@@ -219,6 +278,34 @@ export default function GroupDashboard() {
           Open Prayer Requests
         </Button>
       </section>
+
+      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave "{group.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will no longer have access to this group's prayer requests. You can rejoin later
+              only if you receive a new invitation.
+              {isAdmin && (
+                <span className="block mt-2 text-yellow-400">
+                  You are an admin. Make sure another admin exists before leaving.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => leaveGroup.mutate({ groupId: groupId! })}
+              disabled={leaveGroup.isPending}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              data-testid="btn-confirm-leave"
+            >
+              {leaveGroup.isPending ? "Leaving…" : "Leave Group"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -73,7 +73,7 @@ export default function PrayerRequestList() {
     categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
   };
 
-  const { data: requests = [], isLoading } = useListPrayerRequests(groupId!, params, {
+  const { data: requests = [], isLoading, isError, refetch } = useListPrayerRequests(groupId!, params, {
     query: {
       queryKey: getListPrayerRequestsQueryKey(groupId!, params),
       enabled: !!groupId,
@@ -82,6 +82,17 @@ export default function PrayerRequestList() {
 
   const isAdmin = group?.myRole === "admin";
   const isMod = group?.myRole === "admin" || group?.myRole === "moderator";
+
+  if (isError) {
+    return (
+      <div className="p-10 flex flex-col items-center gap-4 text-center">
+        <p className="text-muted-foreground">Failed to load prayer requests.</p>
+        <Button variant="outline" onClick={() => void refetch()} className="rounded-full" data-testid="btn-retry-requests">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
