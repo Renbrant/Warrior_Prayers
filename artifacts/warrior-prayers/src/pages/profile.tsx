@@ -216,7 +216,9 @@ export default function Profile() {
         <UserAvatar name={user?.fullName} photoUrl={user?.profilePhotoUrl} />
         <div className="text-center">
           <p className="font-bold text-foreground text-lg">{user?.fullName ?? "—"}</p>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+          {user?.email && !user.email.includes("@unknown.local") && (
+            <p className="text-sm text-muted-foreground">{user.email}</p>
+          )}
         </div>
       </div>
 
