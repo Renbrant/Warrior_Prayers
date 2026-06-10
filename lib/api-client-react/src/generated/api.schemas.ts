@@ -565,8 +565,11 @@ export const PrayerSessionInputFilter = {
   all_active: 'all_active',
   urgent_only: 'urgent_only',
   important_urgent: 'important_urgent',
+  not_yet_prayed: 'not_yet_prayed',
   already_praying: 'already_praying',
   created_by_me: 'created_by_me',
+  anonymous: 'anonymous',
+  recent_updates: 'recent_updates',
 } as const;
 
 export interface PrayerSessionInput {

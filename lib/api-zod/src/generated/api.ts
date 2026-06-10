@@ -738,7 +738,7 @@ export const StartPrayerSessionParams = zod.object({
 export const StartPrayerSessionBody = zod.object({
   "mode": zod.enum(['compact', 'detailed']),
   "organizationType": zod.enum(['priority', 'category']).optional(),
-  "filter": zod.enum(['all_active', 'urgent_only', 'important_urgent', 'already_praying', 'created_by_me']).optional()
+  "filter": zod.enum(['all_active', 'urgent_only', 'important_urgent', 'not_yet_prayed', 'already_praying', 'created_by_me', 'anonymous', 'recent_updates']).optional()
 })
 
 

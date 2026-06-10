@@ -21,6 +21,7 @@ import {
   ChevronRight as ChevronRightIcon,
   Plus,
   History,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 type Phase = "setup" | "compact" | "detailed" | "complete";
 type Mode = "compact" | "detailed";
 type OrgType = "priority" | "category";
-type FilterType = "all_active" | "urgent_only" | "important_urgent" | "already_praying" | "created_by_me";
+type FilterType = "all_active" | "urgent_only" | "important_urgent" | "not_yet_prayed" | "already_praying" | "created_by_me" | "anonymous" | "recent_updates";
 
 // ─── Urgency helpers ─────────────────────────────────────────────────────────
 
@@ -144,8 +145,11 @@ function SetupPhase({
                 ["all_active", "All active & follow-up requests"],
                 ["urgent_only", "Urgent requests only"],
                 ["important_urgent", "Important & urgent"],
+                ["not_yet_prayed", "Not yet prayed (by me)"],
                 ["already_praying", "Requests I'm already praying for"],
                 ["created_by_me", "My own prayer requests"],
+                ["anonymous", "Anonymous requests"],
+                ["recent_updates", "Recently updated (last 7 days)"],
               ] as [FilterType, string][]
             ).map(([value, label]) => (
               <button
@@ -286,6 +290,11 @@ function CompactPhase({
   isCompleting: boolean;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [prayedIds, setPrayedIds] = useState<Set<string>>(new Set());
+  const [markingId, setMarkingId] = useState<string | null>(null);
+  const [showExit, setShowExit] = useState(false);
+  const markPrayedMutation = useMarkPrayed();
+
   const byCategory = session.organizationType === "category";
 
   const groups = byCategory
@@ -302,16 +311,68 @@ function CompactPhase({
     });
   }
 
+  function handleMarkPrayed(req: SessionRequest) {
+    if (prayedIds.has(req.id)) return;
+    setMarkingId(req.id);
+    markPrayedMutation.mutate(
+      { groupId, sessionId: session.id, data: { requestId: req.id } },
+      {
+        onSuccess: () => {
+          setPrayedIds((prev) => new Set([...prev, req.id]));
+          setMarkingId(null);
+        },
+        onError: () => setMarkingId(null),
+      },
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {showExit && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-6">
+          <div className="bg-card border border-border rounded-3xl p-6 space-y-4 max-w-sm w-full">
+            <h3 className="text-lg font-bold text-foreground">End Prayer Session?</h3>
+            <p className="text-sm text-muted-foreground">
+              Your progress will be saved. You can start another session any time.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-full"
+                onClick={() => setShowExit(false)}
+                data-testid="btn-exit-cancel"
+              >
+                Keep Praying
+              </Button>
+              <Button
+                className="flex-1 rounded-full"
+                onClick={onComplete}
+                disabled={isCompleting}
+                data-testid="btn-exit-confirm"
+              >
+                {isCompleting ? "Saving…" : "End Session"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="flex items-center justify-between px-4 py-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Flame className="w-4 h-4 text-primary" />
-          </div>
+          <button
+            onClick={() => setShowExit(true)}
+            className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Exit session"
+            data-testid="btn-compact-exit"
+          >
+            <X className="w-4 h-4" />
+          </button>
           <div>
             <p className="text-sm font-bold text-foreground">Compact Prayer</p>
-            <p className="text-xs text-muted-foreground">{session.requests.length} requests{totalUrgent > 0 ? ` · ${totalUrgent} urgent` : ""}</p>
+            <p className="text-xs text-muted-foreground">
+              {prayedIds.size}/{session.requests.length} prayed
+              {totalUrgent > 0 ? ` · ${totalUrgent} urgent` : ""}
+            </p>
           </div>
         </div>
         <Button
@@ -328,6 +389,7 @@ function CompactPhase({
         {groups.map((group) => {
           const urgentInGroup = group.items.filter((r) => r.urgency === "urgent");
           const isOpen = !byCategory || expanded.has(group.name);
+          const focus = prayerFocusSummary(group.items);
 
           return (
             <div key={group.name} className="bg-card border border-border rounded-3xl overflow-hidden">
@@ -352,6 +414,11 @@ function CompactPhase({
                         <span className="text-red-400 ml-1.5">· {urgentInGroup.length} urgent</span>
                       )}
                     </p>
+                    {focus && !isOpen && (
+                      <p className="text-xs text-muted-foreground/70 mt-0.5 italic truncate max-w-[200px]">
+                        {focus}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {byCategory && (
@@ -359,8 +426,25 @@ function CompactPhase({
                 )}
               </button>
 
+              {byCategory && !isOpen && focus && (
+                <div className="px-4 pb-3 -mt-1">
+                  <p className="text-xs text-muted-foreground italic">
+                    <span className="font-semibold not-italic text-muted-foreground">Suggested focus: </span>
+                    {focus}
+                  </p>
+                </div>
+              )}
+
               {isOpen && (
                 <div className="border-t border-border divide-y divide-border">
+                  {byCategory && focus && (
+                    <div className="px-4 py-2 bg-primary/5">
+                      <p className="text-xs text-primary/80">
+                        <span className="font-semibold">Suggested focus: </span>
+                        {focus}
+                      </p>
+                    </div>
+                  )}
                   {urgentInGroup.length > 0 && (
                     <div className="px-4 py-2 bg-red-500/5">
                       <p className="text-xs font-semibold text-red-400 mb-2 flex items-center gap-1">
@@ -368,7 +452,13 @@ function CompactPhase({
                       </p>
                       <div className="space-y-2">
                         {urgentInGroup.map((req) => (
-                          <CompactRequestRow key={req.id} req={req} />
+                          <CompactRequestRow
+                            key={req.id}
+                            req={req}
+                            prayed={prayedIds.has(req.id)}
+                            onMarkPrayed={() => handleMarkPrayed(req)}
+                            isMarking={markingId === req.id}
+                          />
                         ))}
                       </div>
                     </div>
@@ -377,7 +467,13 @@ function CompactPhase({
                     {group.items
                       .filter((r) => r.urgency !== "urgent")
                       .map((req) => (
-                        <CompactRequestRow key={req.id} req={req} />
+                        <CompactRequestRow
+                          key={req.id}
+                          req={req}
+                          prayed={prayedIds.has(req.id)}
+                          onMarkPrayed={() => handleMarkPrayed(req)}
+                          isMarking={markingId === req.id}
+                        />
                       ))}
                     {group.items.filter((r) => r.urgency !== "urgent").length === 0 &&
                       urgentInGroup.length > 0 && (
@@ -396,12 +492,37 @@ function CompactPhase({
   );
 }
 
-function CompactRequestRow({ req }: { req: SessionRequest }) {
+function CompactRequestRow({
+  req,
+  prayed,
+  onMarkPrayed,
+  isMarking,
+}: {
+  req: SessionRequest;
+  prayed: boolean;
+  onMarkPrayed: () => void;
+  isMarking: boolean;
+}) {
   const displayName = req.prayerPersonName ?? (req.prayerPersonInitials ? `${req.prayerPersonInitials}.` : null);
   return (
-    <div className="flex items-start gap-2 py-1">
+    <div className="flex items-start gap-3 py-1">
+      <button
+        onClick={onMarkPrayed}
+        disabled={prayed || isMarking}
+        aria-label={prayed ? "Prayed" : "Mark as prayed"}
+        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+          prayed
+            ? "border-primary bg-primary"
+            : "border-border hover:border-primary/60"
+        }`}
+        data-testid={`btn-compact-pray-${req.id}`}
+      >
+        {prayed && <Check className="w-3 h-3 text-white" />}
+      </button>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground leading-snug">{req.title}</p>
+        <p className={`text-sm font-medium leading-snug ${prayed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+          {req.title}
+        </p>
         {displayName && (
           <p className="text-xs text-muted-foreground">For {displayName}</p>
         )}
@@ -412,6 +533,13 @@ function CompactRequestRow({ req }: { req: SessionRequest }) {
       {req.urgency !== "normal" && <UrgencyBadge urgency={req.urgency} />}
     </div>
   );
+}
+
+function prayerFocusSummary(items: SessionRequest[]): string {
+  const titles = items.slice(0, 3).map((r) => r.title);
+  if (titles.length === 0) return "";
+  const joined = titles.join(", ");
+  return items.length > 3 ? `${joined} and ${items.length - 3} more` : joined;
 }
 
 // ─── Detailed Phase ───────────────────────────────────────────────────────────

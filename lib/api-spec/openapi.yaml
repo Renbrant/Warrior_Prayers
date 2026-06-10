@@ -1775,7 +1775,7 @@ components:
           enum: [priority, category]
         filter:
           type: string
-          enum: [all_active, urgent_only, important_urgent, already_praying, created_by_me]
+          enum: [all_active, urgent_only, important_urgent, not_yet_prayed, already_praying, created_by_me, anonymous, recent_updates]
       required:
         - mode
 

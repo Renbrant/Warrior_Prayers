@@ -153,25 +153,72 @@ router.post(
         rows = rows.filter((r) => r.urgency === "urgent" || r.urgency === "important");
       } else if (filter === "created_by_me") {
         rows = rows.filter((r) => r.createdByUserId === userId);
+      } else if (filter === "anonymous") {
+        rows = rows.filter((r) => r.isAnonymous);
+      } else if (filter === "recent_updates") {
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const recentUpdateRows =
+          rows.length > 0
+            ? await db
+                .select({ prayerRequestId: prayerUpdatesTable.prayerRequestId })
+                .from(prayerUpdatesTable)
+                .where(
+                  and(
+                    inArray(
+                      prayerUpdatesTable.prayerRequestId,
+                      rows.map((r) => r.id),
+                    ),
+                    sql`${prayerUpdatesTable.createdAt} >= ${sevenDaysAgo}`,
+                  ),
+                )
+            : [];
+        const recentIds = new Set(recentUpdateRows.map((r) => r.prayerRequestId));
+        rows = rows.filter((r) => recentIds.has(r.id));
+      } else if (filter === "not_yet_prayed") {
+        const prayedRows =
+          rows.length > 0
+            ? await db
+                .select({ prayerRequestId: prayerSessionItemsTable.prayerRequestId })
+                .from(prayerSessionItemsTable)
+                .innerJoin(
+                  prayerSessionsTable,
+                  eq(prayerSessionItemsTable.prayerSessionId, prayerSessionsTable.id),
+                )
+                .where(
+                  and(
+                    eq(prayerSessionsTable.userId, userId),
+                    eq(prayerSessionsTable.groupId, groupId),
+                    sql`${prayerSessionItemsTable.prayedAt} IS NOT NULL`,
+                    inArray(
+                      prayerSessionItemsTable.prayerRequestId,
+                      rows.map((r) => r.id),
+                    ),
+                  ),
+                )
+            : [];
+        const prayedIds = new Set(prayedRows.map((r) => r.prayerRequestId));
+        rows = rows.filter((r) => !prayedIds.has(r.id));
       }
       // "already_praying" requires joining commitments — handled below
 
-      let alreadyPrayingIds: Set<string> | null = null;
       if (filter === "already_praying") {
-        const commitRows = await db
-          .select({ prayerRequestId: prayerCommitmentsTable.prayerRequestId })
-          .from(prayerCommitmentsTable)
-          .where(
-            and(
-              inArray(
-                prayerCommitmentsTable.prayerRequestId,
-                rows.map((r) => r.id),
-              ),
-              eq(prayerCommitmentsTable.userId, userId),
-            ),
-          );
-        alreadyPrayingIds = new Set(commitRows.map((r) => r.prayerRequestId));
-        rows = rows.filter((r) => alreadyPrayingIds!.has(r.id));
+        const commitRows =
+          rows.length > 0
+            ? await db
+                .select({ prayerRequestId: prayerCommitmentsTable.prayerRequestId })
+                .from(prayerCommitmentsTable)
+                .where(
+                  and(
+                    inArray(
+                      prayerCommitmentsTable.prayerRequestId,
+                      rows.map((r) => r.id),
+                    ),
+                    eq(prayerCommitmentsTable.userId, userId),
+                  ),
+                )
+            : [];
+        const alreadyPrayingIds = new Set(commitRows.map((r) => r.prayerRequestId));
+        rows = rows.filter((r) => alreadyPrayingIds.has(r.id));
       }
 
       // Sort
@@ -333,7 +380,7 @@ router.post(
         return;
       }
 
-      // Find or create session item
+      // Verify requestId is a seeded item from this session (prevents cross-group IDOR)
       const [existingItem] = await db
         .select()
         .from(prayerSessionItemsTable)
@@ -345,25 +392,18 @@ router.post(
         )
         .limit(1);
 
+      if (!existingItem) {
+        res.status(404).json({ error: "Request not found in this session" });
+        return;
+      }
+
       const now = new Date();
 
-      let item;
-      if (existingItem) {
-        [item] = await db
-          .update(prayerSessionItemsTable)
-          .set({ prayedAt: now })
-          .where(eq(prayerSessionItemsTable.id, existingItem.id))
-          .returning();
-      } else {
-        [item] = await db
-          .insert(prayerSessionItemsTable)
-          .values({
-            prayerSessionId: sessionId,
-            prayerRequestId: body.requestId,
-            prayedAt: now,
-          })
-          .returning();
-      }
+      const [item] = await db
+        .update(prayerSessionItemsTable)
+        .set({ prayedAt: now })
+        .where(eq(prayerSessionItemsTable.id, existingItem.id))
+        .returning();
 
       res.json({
         sessionItemId: item.id,
@@ -428,7 +468,7 @@ router.post(
       const prayedItems = items.filter((i) => i.prayedAt != null);
       const prayedRequestIds = prayedItems.map((i) => i.prayerRequestId);
 
-      // Fetch prayed request titles + categories
+      // Fetch prayed request titles + categories (group-scoped for defense-in-depth)
       const prayedRequests =
         prayedRequestIds.length > 0
           ? await db
@@ -438,7 +478,12 @@ router.post(
                 categoryId: prayerRequestsTable.categoryId,
               })
               .from(prayerRequestsTable)
-              .where(inArray(prayerRequestsTable.id, prayedRequestIds))
+              .where(
+                and(
+                  inArray(prayerRequestsTable.id, prayedRequestIds),
+                  eq(prayerRequestsTable.groupId, groupId),
+                ),
+              )
           : [];
 
       const categoryIds = [
