@@ -699,6 +699,27 @@ export interface SessionSkipResult {
   skippedAt: string;
 }
 
+export type TranslateRequestInputTargetLanguage = typeof TranslateRequestInputTargetLanguage[keyof typeof TranslateRequestInputTargetLanguage];
+
+
+export const TranslateRequestInputTargetLanguage = {
+  en: 'en',
+  pt: 'pt',
+  es: 'es',
+} as const;
+
+export interface TranslateRequestInput {
+  targetLanguage: TranslateRequestInputTargetLanguage;
+}
+
+export interface TranslateRequestResult {
+  translatedTitle: string;
+  /** @nullable */
+  translatedDescription?: string | null;
+  targetLanguage: string;
+  cached: boolean;
+}
+
 export type SessionSummaryPrayedRequestsItem = {
   id: string;
   title: string;

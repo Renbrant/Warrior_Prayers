@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: translations
+    description: AI translation operations
   - name: users
     description: User profile operations
   - name: dashboard
@@ -762,6 +764,44 @@ paths:
           description: Unauthorized
         "403":
           description: Forbidden
+        "404":
+          description: Prayer request not found
+
+  /groups/{groupId}/requests/{requestId}/translate:
+    post:
+      operationId: translatePrayerRequest
+      tags: [translations]
+      summary: Translate a prayer request title and description using AI
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslateRequestInput"
+      responses:
+        "200":
+          description: Translation result (may be cached)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslateRequestResult"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
         "404":
           description: Prayer request not found
 
@@ -2107,6 +2147,31 @@ components:
         - sessionItemId
         - requestId
         - skippedAt
+
+    TranslateRequestInput:
+      type: object
+      properties:
+        targetLanguage:
+          type: string
+          enum: [en, pt, es]
+      required:
+        - targetLanguage
+
+    TranslateRequestResult:
+      type: object
+      properties:
+        translatedTitle:
+          type: string
+        translatedDescription:
+          type: ["string", "null"]
+        targetLanguage:
+          type: string
+        cached:
+          type: boolean
+      required:
+        - translatedTitle
+        - targetLanguage
+        - cached
 
     SessionSummary:
       type: object

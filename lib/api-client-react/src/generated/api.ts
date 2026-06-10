@@ -55,6 +55,8 @@ import type {
   SessionMarkResult,
   SessionSkipResult,
   SessionSummary,
+  TranslateRequestInput,
+  TranslateRequestResult,
   UserProfile,
   UserProfileUpdate
 } from './api.schemas';
@@ -2159,6 +2161,80 @@ export const useDeletePrayerRequest = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getDeletePrayerRequestMutationOptions(options));
+    }
+
+export const getTranslatePrayerRequestUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}/translate`
+}
+
+/**
+ * @summary Translate a prayer request title and description using AI
+ */
+export const translatePrayerRequest = async (groupId: string,
+    requestId: string,
+    translateRequestInput: TranslateRequestInput, options?: RequestInit): Promise<TranslateRequestResult> => {
+
+  return customFetch<TranslateRequestResult>(getTranslatePrayerRequestUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      translateRequestInput,)
+  }
+);}
+
+
+
+
+export const getTranslatePrayerRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translatePrayerRequest>>, TError,{groupId: string;requestId: string;data: BodyType<TranslateRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof translatePrayerRequest>>, TError,{groupId: string;requestId: string;data: BodyType<TranslateRequestInput>}, TContext> => {
+
+const mutationKey = ['translatePrayerRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof translatePrayerRequest>>, {groupId: string;requestId: string;data: BodyType<TranslateRequestInput>}> = (props) => {
+          const {groupId,requestId,data} = props ?? {};
+
+          return  translatePrayerRequest(groupId,requestId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TranslatePrayerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof translatePrayerRequest>>>
+    export type TranslatePrayerRequestMutationBody = BodyType<TranslateRequestInput>
+    export type TranslatePrayerRequestMutationError = ErrorType<void>
+
+    /**
+ * @summary Translate a prayer request title and description using AI
+ */
+export const useTranslatePrayerRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translatePrayerRequest>>, TError,{groupId: string;requestId: string;data: BodyType<TranslateRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof translatePrayerRequest>>,
+        TError,
+        {groupId: string;requestId: string;data: BodyType<TranslateRequestInput>},
+        TContext
+      > => {
+      return useMutation(getTranslatePrayerRequestMutationOptions(options));
     }
 
 export const getToggleCommitmentUrl = (groupId: string,

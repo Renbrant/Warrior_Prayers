@@ -658,6 +658,26 @@ export const DeletePrayerRequestParams = zod.object({
 
 
 /**
+ * @summary Translate a prayer request title and description using AI
+ */
+export const TranslatePrayerRequestParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const TranslatePrayerRequestBody = zod.object({
+  "targetLanguage": zod.enum(['en', 'pt', 'es'])
+})
+
+export const TranslatePrayerRequestResponse = zod.object({
+  "translatedTitle": zod.string(),
+  "translatedDescription": zod.string().nullish(),
+  "targetLanguage": zod.string(),
+  "cached": zod.boolean()
+})
+
+
+/**
  * @summary Toggle "I am praying" commitment for a prayer request
  */
 export const ToggleCommitmentParams = zod.object({

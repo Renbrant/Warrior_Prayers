@@ -335,6 +335,21 @@ export const insertNotificationSchema = createInsertSchema(notificationsTable).o
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notificationsTable.$inferSelect;
 
+// ─── prayer_request_translations ─────────────────────────────────────────────
+
+export const prayerRequestTranslationsTable = pgTable("prayer_request_translations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  prayerRequestId: uuid("prayer_request_id")
+    .notNull()
+    .references(() => prayerRequestsTable.id, { onDelete: "cascade" }),
+  targetLanguage: text("target_language").notNull(),
+  translatedTitle: text("translated_title").notNull(),
+  translatedDescription: text("translated_description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type PrayerRequestTranslation = typeof prayerRequestTranslationsTable.$inferSelect;
+
 // ─── audit_logs ───────────────────────────────────────────────────────────────
 
 export const auditLogsTable = pgTable("audit_logs", {

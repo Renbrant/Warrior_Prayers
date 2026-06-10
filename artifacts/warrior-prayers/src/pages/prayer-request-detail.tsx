@@ -10,6 +10,7 @@ import {
   useDeleteComment,
   useAddPrayerUpdate,
   useDeletePrayerRequest,
+  useTranslatePrayerRequest,
   getGetPrayerRequestQueryKey,
   getListCommentsQueryKey,
   getListPrayerRequestsQueryKey,
@@ -29,6 +30,8 @@ import {
   ChevronUp,
   UserX,
   CheckCircle2,
+  Languages,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,6 +63,18 @@ const URGENCY_BADGE: Record<string, string> = {
   normal: "bg-muted text-muted-foreground border-border",
 };
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: "English",
+  pt: "Português",
+  es: "Español",
+};
+
+const LANGUAGE_FROM_LABELS: Record<string, string> = {
+  en: "English",
+  pt: "Portuguese",
+  es: "Spanish",
+};
+
 function formatDate(d: Date | string | null | undefined): string {
   if (!d) return "";
   return new Date(d).toLocaleDateString(undefined, {
@@ -85,6 +100,16 @@ export default function PrayerRequestDetail() {
   const [pendingArchive, setPendingArchive] = useState(false);
   const [pendingClose, setPendingClose] = useState(false);
 
+  const [showTranslate, setShowTranslate] = useState(false);
+  const [selectedLang, setSelectedLang] = useState<string>("pt");
+  const [translation, setTranslation] = useState<{
+    translatedTitle: string;
+    translatedDescription: string | null;
+    targetLanguage: string;
+    cached: boolean;
+  } | null>(null);
+  const [showingTranslation, setShowingTranslation] = useState(false);
+
   const { data: group } = useGetGroup(groupId!, { query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId } });
   const { data: request, isLoading } = useGetPrayerRequest(groupId!, requestId!, {
     query: {
@@ -104,6 +129,7 @@ export default function PrayerRequestDetail() {
   const deleteComment = useDeleteComment();
   const addUpdate = useAddPrayerUpdate();
   const deleteRequest = useDeletePrayerRequest();
+  const translateRequest = useTranslatePrayerRequest();
 
   const isMod = group?.myRole === "admin" || group?.myRole === "moderator";
   const isAdmin = group?.myRole === "admin";
@@ -210,6 +236,32 @@ export default function PrayerRequestDetail() {
     );
   };
 
+  const handleTranslate = () => {
+    if (translation?.targetLanguage === selectedLang) {
+      setShowingTranslation(true);
+      return;
+    }
+    translateRequest.mutate(
+      { groupId: groupId!, requestId: requestId!, data: { targetLanguage: selectedLang as "en" | "pt" | "es" } },
+      {
+        onSuccess: (data) => {
+          setTranslation({
+            translatedTitle: data.translatedTitle,
+            translatedDescription: data.translatedDescription ?? null,
+            targetLanguage: data.targetLanguage,
+            cached: data.cached,
+          });
+          setShowingTranslation(true);
+        },
+        onError: () => toast({ title: "Error", description: "Could not translate request.", variant: "destructive" }),
+      },
+    );
+  };
+
+  const handleHideTranslation = () => {
+    setShowingTranslation(false);
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-4">
@@ -235,6 +287,11 @@ export default function PrayerRequestDetail() {
   const canEdit = request.isMyRequest || isMod;
   const canDelete = request.isMyRequest || isAdmin;
   const isClosed = request.status === "closed" || request.status === "archived";
+
+  const displayTitle = showingTranslation && translation ? translation.translatedTitle : request.title;
+  const displayDescription = showingTranslation && translation
+    ? (translation.translatedDescription ?? request.description)
+    : request.description;
 
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-5">
@@ -301,7 +358,12 @@ export default function PrayerRequestDetail() {
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-bold">{request.title}</h1>
+            <h1 className="text-xl font-bold">{displayTitle}</h1>
+            {showingTranslation && translation && displayTitle !== request.title && (
+              <p className="text-xs text-muted-foreground italic">
+                Original: {request.title}
+              </p>
+            )}
             {displayName && (
               <p className="text-sm text-muted-foreground">
                 For <span className="font-medium text-foreground">{displayName}</span>
@@ -310,15 +372,30 @@ export default function PrayerRequestDetail() {
           </div>
         </div>
 
-        {request.description && (
+        {displayDescription && (
           <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
-            {request.description}
+            {displayDescription}
           </p>
+        )}
+
+        {showingTranslation && translation && (
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-xs text-primary flex items-center gap-1">
+              <Languages className="w-3 h-3" />
+              Translated to {LANGUAGE_FROM_LABELS[translation.targetLanguage]}
+              {translation.cached ? " (cached)" : ""}
+            </span>
+            <button
+              onClick={handleHideTranslation}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
+            >
+              <X className="w-3 h-3" /> Show original
+            </button>
+          </div>
         )}
 
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
           {request.isAnonymous ? (
-            // Admins see "Anonymous (Real Name)" when group setting permits
             request.authorName && isAdmin ? (
               <span className="flex items-center gap-1">
                 <UserX className="w-3 h-3" />
@@ -355,6 +432,59 @@ export default function PrayerRequestDetail() {
             )}
           </div>
         )}
+
+        {/* Translate controls */}
+        <div className="pt-2 border-t border-border">
+          {!showTranslate ? (
+            <button
+              onClick={() => setShowTranslate(true)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+              data-testid="btn-show-translate"
+            >
+              <Languages className="w-3.5 h-3.5" />
+              Translate this request
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Languages className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <span className="text-xs text-muted-foreground">Translate to:</span>
+              <Select value={selectedLang} onValueChange={setSelectedLang}>
+                <SelectTrigger className="h-7 text-xs rounded-lg w-32 px-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">{LANGUAGE_LABELS.en}</SelectItem>
+                  <SelectItem value="pt">{LANGUAGE_LABELS.pt}</SelectItem>
+                  <SelectItem value="es">{LANGUAGE_LABELS.es}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleTranslate}
+                disabled={translateRequest.isPending}
+                className="h-7 text-xs rounded-lg px-3"
+                data-testid="btn-translate"
+              >
+                {translateRequest.isPending ? "Translating..." : showingTranslation ? "Re-translate" : "Translate"}
+              </Button>
+              {showingTranslation && (
+                <button
+                  onClick={handleHideTranslation}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Show original
+                </button>
+              )}
+              <button
+                onClick={() => { setShowTranslate(false); setShowingTranslation(false); }}
+                className="text-muted-foreground hover:text-foreground transition-colors ml-auto"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
       </section>
 
       <button
