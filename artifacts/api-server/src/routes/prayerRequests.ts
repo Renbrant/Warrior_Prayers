@@ -8,9 +8,11 @@ import {
   prayerCategoriesTable,
   prayerGroupsTable,
   auditLogsTable,
+  notificationsTable,
+  groupMembersTable,
   usersTable,
 } from "@workspace/db";
-import { eq, and, inArray, count, sql, isNull } from "drizzle-orm";
+import { eq, and, inArray, count, sql, isNull, ne } from "drizzle-orm";
 import { syncUserFromClerk, requireAuth } from "../lib/auth";
 import {
   requireGroupMember,
@@ -349,6 +351,33 @@ router.post(
         entityType: "prayer_request",
         entityId: created.id,
       });
+
+      const groupMembers = await db
+        .select({ userId: groupMembersTable.userId })
+        .from(groupMembersTable)
+        .where(
+          and(
+            eq(groupMembersTable.groupId, groupId),
+            eq(groupMembersTable.status, "active"),
+            ne(groupMembersTable.userId, userId),
+          ),
+        );
+
+      if (groupMembers.length > 0) {
+        const title = created.isAnonymous ? "New Prayer Request" : "New Prayer Request";
+        const message = `A new prayer request was submitted: "${created.title}"`;
+        await db.insert(notificationsTable).values(
+          groupMembers.map((m) => ({
+            userId: m.userId,
+            groupId,
+            type: "new_prayer_request",
+            title,
+            message,
+            relatedEntityType: "prayer_request",
+            relatedEntityId: created.id,
+          })),
+        );
+      }
 
       const { commitmentCount, iCommitted } = await getCommitmentInfo(created.id, userId);
       const category = await getCategory(created.categoryId);
@@ -734,6 +763,24 @@ router.post(
         .where(eq(usersTable.id, userId))
         .limit(1);
 
+      const [fullReq] = await db
+        .select({ createdByUserId: prayerRequestsTable.createdByUserId, title: prayerRequestsTable.title })
+        .from(prayerRequestsTable)
+        .where(eq(prayerRequestsTable.id, requestId))
+        .limit(1);
+
+      if (fullReq && fullReq.createdByUserId !== userId) {
+        await db.insert(notificationsTable).values({
+          userId: fullReq.createdByUserId,
+          groupId,
+          type: "new_comment",
+          title: "New Comment on Your Request",
+          message: `${user?.fullName ?? "Someone"} commented on "${fullReq.title}"`,
+          relatedEntityType: "prayer_request",
+          relatedEntityId: requestId,
+        });
+      }
+
       res.status(201).json({
         id: created.id,
         comment: comment.trim(),
@@ -905,11 +952,37 @@ router.post(
       await db.insert(auditLogsTable).values({
         userId,
         groupId,
-        action: body.newStatus === "closed" ? "prayer_request_closed" : "prayer_request_updated",
+        action: body.newStatus === "closed" ? "prayer_request_closed" : body.newStatus === "archived" ? "prayer_request_archived" : "prayer_request_updated",
         entityType: "prayer_request",
         entityId: requestId,
         metadata: body.newStatus ? { newStatus: body.newStatus, closureReason: body.closureReason } : undefined,
       });
+
+      if (body.newStatus === "closed" && body.closureReason === "answered_prayer") {
+        const committedMembers = await db
+          .select({ userId: prayerCommitmentsTable.userId })
+          .from(prayerCommitmentsTable)
+          .where(
+            and(
+              eq(prayerCommitmentsTable.prayerRequestId, requestId),
+              ne(prayerCommitmentsTable.userId, userId),
+            ),
+          );
+
+        if (committedMembers.length > 0) {
+          await db.insert(notificationsTable).values(
+            committedMembers.map((m) => ({
+              userId: m.userId,
+              groupId,
+              type: "request_answered",
+              title: "Prayer Answered! 🙌",
+              message: `"${row.title}" has been marked as answered prayer.`,
+              relatedEntityType: "prayer_request",
+              relatedEntityId: requestId,
+            })),
+          );
+        }
+      }
 
       const group = await getGroupSettings(groupId);
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);

@@ -1,20 +1,40 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Users, Heart, Bell, User, LogOut } from "lucide-react";
+import { Home, Users, Heart, Bell, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useClerk } from "@clerk/react";
+import {
+  useListNotifications,
+  getListNotificationsQueryKey,
+} from "@workspace/api-client-react";
+
+function NotificationBadge({ count }: { count: number }) {
+  if (count === 0) return null;
+  return (
+    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center leading-none">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { t } = useTranslation();
-  const { signOut } = useClerk();
+
+  const { data: notifData } = useListNotifications({
+    query: {
+      queryKey: getListNotificationsQueryKey(),
+      refetchInterval: 60000,
+      staleTime: 30000,
+    },
+  });
+  const unreadCount = notifData?.unreadCount ?? 0;
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/app/dashboard" },
-    { icon: Users, label: "Groups", href: "/app/groups" },
-    { icon: Heart, label: "Pray", href: "/app/pray" },
-    { icon: Bell, label: "Notifications", href: "/app/notifications" },
-    { icon: User, label: "Profile", href: "/app/profile" },
+    { icon: Home, label: "Home", href: "/app/dashboard", testId: "home" },
+    { icon: Users, label: "Groups", href: "/app/groups", testId: "groups" },
+    { icon: Heart, label: "Pray", href: "/app/pray", testId: "pray" },
+    { icon: Bell, label: "Notifications", href: "/app/notifications", testId: "notifications", badge: unreadCount },
+    { icon: User, label: "Profile", href: "/app/profile", testId: "profile" },
   ];
 
   return (
@@ -27,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             Warrior Prayers
           </Link>
         </div>
-        <nav className="flex-1 px-4 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-1 mt-4">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -37,22 +57,30 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
-              data-testid={`link-${item.label.toLowerCase()}`}
+              data-testid={`link-${item.testId}`}
             >
-              <item.icon className="w-5 h-5" />
+              <span className="relative">
+                <item.icon className="w-5 h-5" />
+                {item.badge != null && <NotificationBadge count={item.badge} />}
+              </span>
               <span className="font-medium">{item.label}</span>
+              {item.badge != null && item.badge > 0 && (
+                <span className="ml-auto min-w-[22px] h-[22px] px-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
         <div className="p-4 border-t border-border">
-          <button
-            onClick={() => signOut({ redirectUrl: "/" })}
+          <Link
+            href="/app/profile"
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-medium"
-            data-testid="button-logout"
+            data-testid="link-profile-footer"
           >
-            <LogOut className="w-5 h-5" />
-            <span>{t("auth.logout")}</span>
-          </button>
+            <User className="w-5 h-5" />
+            <span>{t("profile.title", "Profile & Settings")}</span>
+          </Link>
         </div>
       </aside>
 
@@ -67,14 +95,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center justify-center p-2 rounded-xl min-w-[64px] ${
+            className={`flex flex-col items-center justify-center p-2 rounded-xl min-w-[60px] ${
               location.startsWith(item.href)
                 ? "text-primary"
                 : "text-muted-foreground"
             }`}
-            data-testid={`mobile-link-${item.label.toLowerCase()}`}
+            data-testid={`mobile-link-${item.testId}`}
           >
-            <item.icon className="w-6 h-6 mb-1" />
+            <span className="relative">
+              <item.icon className="w-6 h-6 mb-1" />
+              {item.badge != null && <NotificationBadge count={item.badge} />}
+            </span>
             <span className="text-[10px] font-medium">{item.label}</span>
           </Link>
         ))}

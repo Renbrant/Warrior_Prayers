@@ -5,6 +5,28 @@
  * Warrior Prayers API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface Notification {
+  id: string;
+  userId: string;
+  /** @nullable */
+  groupId?: string | null;
+  type: string;
+  title: string;
+  message: string;
+  /** @nullable */
+  relatedEntityType?: string | null;
+  /** @nullable */
+  relatedEntityId?: string | null;
+  /** @nullable */
+  readAt?: string | null;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  unreadCount: number;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -697,6 +719,10 @@ export type ListPrayerRequestsParams = {
 status?: string;
 categoryId?: string;
 urgency?: string;
+};
+
+export type MarkAllNotificationsRead200 = {
+  success: boolean;
 };
 
 export type GetPrayerHistoryParams = {

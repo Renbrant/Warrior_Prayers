@@ -15,6 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const EXPIRY_OPTIONS = [
   { label: "7 days", value: 7 },
@@ -43,6 +53,7 @@ export default function GroupInvite() {
   const [linkMaxUses, setLinkMaxUses] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [revokeTargetId, setRevokeTargetId] = useState<string | null>(null);
 
   const { data: group, isLoading: isGroupLoading } = useGetGroup(groupId!, {
     query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId },
@@ -304,7 +315,7 @@ export default function GroupInvite() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleRevoke(inv.id)}
+                  onClick={() => setRevokeTargetId(inv.id)}
                   className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
                   data-testid={`btn-revoke-${inv.id}`}
                 >
@@ -315,6 +326,30 @@ export default function GroupInvite() {
           </ul>
         )}
       </section>
+
+      <AlertDialog open={!!revokeTargetId} onOpenChange={(open) => { if (!open) setRevokeTargetId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke Invitation</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will immediately invalidate the invite link or email invitation. The recipient will no longer be able to use it to join the group.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (revokeTargetId) handleRevoke(revokeTargetId);
+                setRevokeTargetId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="btn-confirm-revoke"
+            >
+              Revoke
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

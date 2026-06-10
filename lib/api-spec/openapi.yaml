@@ -24,6 +24,8 @@ tags:
     description: Prayer request operations
   - name: sessions
     description: Prayer session (Prayer Mode) operations
+  - name: notifications
+    description: Notification operations
 
 paths:
   /healthz:
@@ -1080,6 +1082,70 @@ paths:
         "404":
           description: Session or request not found
 
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List current user's notifications
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: Notifications list with unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsResponse"
+        "401":
+          description: Unauthorized
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+        "401":
+          description: Unauthorized
+
+  /notifications/{notificationId}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a single notification as read
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Notification not found
+
   /groups/{groupId}/history:
     get:
       operationId: getPrayerHistory
@@ -1118,6 +1184,50 @@ components:
       scheme: bearer
 
   schemas:
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        groupId:
+          type: ["string", "null"]
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        relatedEntityType:
+          type: ["string", "null"]
+        relatedEntityId:
+          type: ["string", "null"]
+        readAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - message
+        - createdAt
+
+    NotificationsResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        unreadCount:
+          type: integer
+      required:
+        - notifications
+        - unreadCount
+
     HealthStatus:
       type: object
       properties:

@@ -7,6 +7,7 @@ import {
   prayerGroupsTable,
   usersTable,
   notificationsTable,
+  auditLogsTable,
 } from "@workspace/db";
 import { eq, and, count } from "drizzle-orm";
 import { syncUserFromClerk, requireAuth } from "../lib/auth";
@@ -115,6 +116,15 @@ router.post(
         return;
       }
 
+      await db.insert(auditLogsTable).values({
+        userId: dbUserId,
+        groupId,
+        action: "invitation_sent",
+        entityType: "group_invite",
+        entityId: invite.id,
+        metadata: { invitedEmail: invitedEmail ?? null },
+      });
+
       if (invitedEmail) {
         const [group] = await db
           .select({ name: prayerGroupsTable.name })
@@ -199,6 +209,15 @@ router.delete(
         .update(groupInvitesTable)
         .set({ status: "revoked", revokedAt: new Date() })
         .where(eq(groupInvitesTable.id, inviteId));
+
+      await db.insert(auditLogsTable).values({
+        userId: req.dbUserId!,
+        groupId,
+        action: "invitation_revoked",
+        entityType: "group_invite",
+        entityId: inviteId,
+        metadata: { invitedEmail: invite.invitedEmail ?? null },
+      });
 
       res.status(204).send();
     } catch (err) {
@@ -448,6 +467,24 @@ router.post(
             eq(groupMembersTable.status, "active"),
           ),
         );
+
+      const [newMemberUser] = await db
+        .select({ fullName: usersTable.fullName })
+        .from(usersTable)
+        .where(eq(usersTable.id, dbUserId))
+        .limit(1);
+
+      if (group.createdByUserId !== dbUserId) {
+        await db.insert(notificationsTable).values({
+          userId: group.createdByUserId,
+          groupId: invite.groupId,
+          type: "member_joined",
+          title: "New Member Joined",
+          message: `${newMemberUser?.fullName ?? "Someone"} joined "${group.name}".`,
+          relatedEntityType: "prayer_group",
+          relatedEntityId: invite.groupId,
+        });
+      }
 
       res.json({
         id: group.id,

@@ -432,6 +432,15 @@ router.patch(
         .set({ role })
         .where(eq(groupMembersTable.id, memberId));
 
+      await db.insert(auditLogsTable).values({
+        userId: dbUserId,
+        groupId,
+        action: "member_role_changed",
+        entityType: "group_member",
+        entityId: memberId,
+        metadata: { targetUserId: targetMember.userId, newRole: role, previousRole: targetMember.role },
+      });
+
       const [user] = await db
         .select({
           fullName: usersTable.fullName,
@@ -508,6 +517,15 @@ router.delete(
         message: "You have been removed from a prayer group.",
         relatedEntityType: "prayer_group",
         relatedEntityId: groupId,
+      });
+
+      await db.insert(auditLogsTable).values({
+        userId: dbUserId,
+        groupId,
+        action: "member_removed",
+        entityType: "group_member",
+        entityId: memberId,
+        metadata: { targetUserId: targetMember.userId },
       });
 
       res.status(204).send();

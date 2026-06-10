@@ -846,6 +846,55 @@ export const MarkSkippedResponse = zod.object({
 
 
 /**
+ * @summary List current user's notifications
+ */
+export const ListNotificationsResponse = zod.object({
+  "notifications": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "groupId": zod.string().nullish(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "relatedEntityType": zod.string().nullish(),
+  "relatedEntityId": zod.string().nullish(),
+  "readAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})),
+  "unreadCount": zod.number()
+})
+
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Mark a single notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "notificationId": zod.coerce.string()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "groupId": zod.string().nullish(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "relatedEntityType": zod.string().nullish(),
+  "relatedEntityId": zod.string().nullish(),
+  "readAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
  * @summary Get prayer history (closed and archived requests)
  */
 export const GetPrayerHistoryParams = zod.object({
