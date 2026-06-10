@@ -4,6 +4,28 @@
 
 The app allows users to create secure invitation-only prayer groups, share prayer requests, pray through active needs, track updates, and record answered prayers.
 
+## Biblical Inspiration
+
+Warrior Prayers is inspired by the biblical call to live a life of constant prayer, faith, perseverance, and intercession.
+
+> **“Pray without ceasing.”**
+> **1 Thessalonians 5:17**
+
+> **“Call to me, and I will answer you.”**
+> **Jeremiah 33:3**
+
+> **“The prayer of a righteous person is powerful and effective.”**
+> **James 5:16**
+
+> **“Continue steadfastly in prayer, watching in it with thanksgiving.”**
+> **Colossians 4:2**
+
+> **“Whatever you ask in prayer, believing, you will receive.”**
+> **Matthew 21:22**
+
+These verses reflect the heart of the app: helping believers pray together, support one another, and remain faithful in intercession.
+
+
 ---
 
 ## 🌐 Web Version
