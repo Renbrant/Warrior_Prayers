@@ -22,6 +22,7 @@ import PrayerRequestList from "@/pages/prayer-request-list";
 import CreatePrayerRequest from "@/pages/create-prayer-request";
 import PrayerRequestDetail from "@/pages/prayer-request-detail";
 import PrayerHistory from "@/pages/prayer-history";
+import GroupCategories from "@/pages/group-categories";
 import { AppShell } from "@/components/layout/app-shell";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
@@ -170,6 +171,7 @@ function ProtectedAppShell() {
             <Route path="/app/groups/:groupId/settings" component={GroupSettings} />
             <Route path="/app/groups/:groupId/invite" component={GroupInvite} />
             <Route path="/app/groups/:groupId/members" component={GroupMembers} />
+            <Route path="/app/groups/:groupId/categories" component={GroupCategories} />
             <Route path="/app/groups/:groupId/history" component={PrayerHistory} />
             <Route path="/app/groups/:groupId/requests/new" component={CreatePrayerRequest} />
             <Route path="/app/groups/:groupId/requests/:requestId" component={PrayerRequestDetail} />

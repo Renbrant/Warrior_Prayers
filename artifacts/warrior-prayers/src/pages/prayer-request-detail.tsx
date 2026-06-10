@@ -302,13 +302,21 @@ export default function PrayerRequestDetail() {
         )}
 
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
-          {request.authorName && !request.isAnonymous && (
-            <span>By {request.authorName}</span>
-          )}
-          {request.isAnonymous && (
-            <span className="flex items-center gap-1">
-              <UserX className="w-3 h-3" /> Anonymous
-            </span>
+          {request.isAnonymous ? (
+            // Admins see "Anonymous (Real Name)" when group setting permits
+            request.authorName && isAdmin ? (
+              <span className="flex items-center gap-1">
+                <UserX className="w-3 h-3" />
+                Anonymous
+                <span className="text-muted-foreground/60">(admin view: {request.authorName})</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <UserX className="w-3 h-3" /> Anonymous
+              </span>
+            )
+          ) : (
+            request.authorName && <span>By {request.authorName}</span>
           )}
           {request.importantDate && (
             <span className="flex items-center gap-1">

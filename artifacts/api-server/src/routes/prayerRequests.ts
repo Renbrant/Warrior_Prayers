@@ -594,15 +594,30 @@ router.get(
       const requestId = String(req.params.requestId);
       const userId = req.dbUserId!;
 
-      // Verify request belongs to this group before returning comments
+      // Verify request belongs to this group and comments are allowed
       const [prayerReq] = await db
-        .select({ id: prayerRequestsTable.id })
+        .select({
+          id: prayerRequestsTable.id,
+          allowComments: prayerRequestsTable.allowComments,
+        })
         .from(prayerRequestsTable)
         .where(and(eq(prayerRequestsTable.id, requestId), eq(prayerRequestsTable.groupId, groupId)))
         .limit(1);
 
       if (!prayerReq) {
         res.status(404).json({ error: "Prayer request not found" });
+        return;
+      }
+
+      // Enforce group-level allowComments setting
+      const groupSettings = await getGroupSettings(groupId);
+      if (!groupSettings?.allowComments) {
+        res.json([]);
+        return;
+      }
+
+      if (!prayerReq.allowComments) {
+        res.json([]);
         return;
       }
 
@@ -669,6 +684,13 @@ router.post(
 
       if (!prayerReq) {
         res.status(404).json({ error: "Prayer request not found" });
+        return;
+      }
+
+      // Enforce group-level allowComments setting server-side
+      const groupSettings = await getGroupSettings(groupId);
+      if (!groupSettings?.allowComments) {
+        res.status(400).json({ error: "Comments are disabled for this group" });
         return;
       }
 
@@ -801,22 +823,17 @@ router.post(
 
       const isAuthor = row.createdByUserId === userId;
       const isMod = memberRole === "admin" || memberRole === "moderator";
+      const isAdminForUpdate = memberRole === "admin";
+
       if (!isAuthor && !isMod) {
         res.status(403).json({ error: "Only the author or a moderator can add updates" });
         return;
       }
 
-      await db.insert(prayerUpdatesTable).values({
-        prayerRequestId: requestId,
-        userId,
-        updateTextEncrypted: encrypt(body.updateText.trim()),
-      });
-
+      // ── Validate ALL status-transition rules BEFORE any DB writes ────────────
       const requestUpdates: Partial<typeof prayerRequestsTable.$inferInsert> = {
         updatedAt: new Date(),
       };
-
-      const isAdminForUpdate = memberRole === "admin";
 
       if (body.newStatus && body.newStatus !== row.status) {
         // Archiving is admin-only
@@ -851,6 +868,13 @@ router.post(
           requestUpdates.archivedAt = new Date();
         }
       }
+
+      // ── All validations passed — now write atomically ────────────────────────
+      await db.insert(prayerUpdatesTable).values({
+        prayerRequestId: requestId,
+        userId,
+        updateTextEncrypted: encrypt(body.updateText.trim()),
+      });
 
       const [updated] = await db
         .update(prayerRequestsTable)

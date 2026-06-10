@@ -35,12 +35,19 @@ router.get(
   async (req: GroupAuthRequest, res) => {
     try {
       const groupId = req.groupId!;
+      const memberRole = req.memberRole!;
+      const isAdmin = memberRole === "admin";
+
+      // Admins see all categories (including inactive) to allow reactivation
+      // Regular members only see active categories
+      const conditions = isAdmin
+        ? [eq(prayerCategoriesTable.groupId, groupId)]
+        : [eq(prayerCategoriesTable.groupId, groupId), eq(prayerCategoriesTable.isActive, true)];
+
       const rows = await db
         .select()
         .from(prayerCategoriesTable)
-        .where(
-          and(eq(prayerCategoriesTable.groupId, groupId), eq(prayerCategoriesTable.isActive, true)),
-        )
+        .where(and(...conditions))
         .orderBy(prayerCategoriesTable.isDefault, prayerCategoriesTable.name);
 
       res.json(rows.map(formatCategory));

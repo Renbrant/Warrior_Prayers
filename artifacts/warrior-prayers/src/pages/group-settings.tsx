@@ -246,6 +246,25 @@ export default function GroupSettings() {
         </Button>
       </form>
 
+      <section className="bg-card border border-border rounded-3xl p-6 space-y-4">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Manage</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">Prayer Categories</p>
+            <p className="text-xs text-muted-foreground">Create and manage categories for prayer requests.</p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-full"
+            data-testid="btn-manage-categories"
+            onClick={() => setLocation(`/app/groups/${groupId}/categories`)}
+          >
+            Manage →
+          </Button>
+        </div>
+      </section>
+
       <section className="bg-card border border-destructive/20 rounded-3xl p-6 space-y-4">
         <h2 className="text-sm font-semibold text-destructive/80 uppercase tracking-wider">Danger Zone</h2>
         <div className="flex items-center justify-between">
