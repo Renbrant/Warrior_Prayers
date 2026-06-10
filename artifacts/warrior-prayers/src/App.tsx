@@ -27,6 +27,7 @@ import PrayerMode from "@/pages/prayer-mode";
 import Notifications from "@/pages/notifications";
 import Profile from "@/pages/profile";
 import PrayerHub from "@/pages/prayer-hub";
+import Groups from "@/pages/groups";
 import { AppShell } from "@/components/layout/app-shell";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
@@ -182,9 +183,7 @@ function ProtectedAppShell() {
             <Route path="/app/groups/:groupId/pray" component={PrayerMode} />
             <Route path="/app/groups/:groupId/requests" component={PrayerRequestList} />
             <Route path="/app/groups/:groupId" component={GroupDashboard} />
-            <Route path="/app/groups">
-              <Redirect to="/app/dashboard" />
-            </Route>
+            <Route path="/app/groups" component={Groups} />
             <Route path="/app/notifications" component={Notifications} />
             <Route path="/app/profile" component={Profile} />
             <Route path="/app/pray" component={PrayerHub} />
