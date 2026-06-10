@@ -202,7 +202,14 @@ function ClerkProviderWithRoutes() {
           <Route path="/" component={HomeRedirect} />
           <Route path="/sign-in/*?" component={SignInPage} />
           <Route path="/sign-up/*?" component={SignUpPage} />
-          <Route path="/complete-profile" component={CompleteProfile} />
+          <Route path="/complete-profile">
+            <Show when="signed-in">
+              <CompleteProfile />
+            </Show>
+            <Show when="signed-out">
+              <Redirect to="/" />
+            </Show>
+          </Route>
           <Route path="/app/*" component={ProtectedAppShell} />
           <Route component={NotFound} />
         </Switch>

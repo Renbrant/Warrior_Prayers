@@ -26,7 +26,7 @@ export default function CompleteProfile() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useGetMe({
+  const { data: user, isLoading, isError } = useGetMe({
     query: { queryKey: getGetMeQueryKey() }
   });
 
@@ -74,7 +74,14 @@ export default function CompleteProfile() {
     );
   };
 
-  if (isLoading || !user) return <div className="min-h-screen bg-background" />;
+  useEffect(() => {
+    if (isError) {
+      setLocation("/");
+    }
+  }, [isError, setLocation]);
+
+  if (isLoading) return <div className="min-h-screen bg-background" />;
+  if (!user || isError) return null;
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-background">
