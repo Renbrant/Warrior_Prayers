@@ -18,6 +18,10 @@ tags:
     description: Prayer group operations
   - name: invitations
     description: Invitation operations
+  - name: categories
+    description: Prayer category operations
+  - name: prayers
+    description: Prayer request operations
 
 paths:
   /healthz:
