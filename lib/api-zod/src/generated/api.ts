@@ -517,6 +517,7 @@ export const ListPrayerRequestsResponseItem = zod.object({
   "iCommitted": zod.boolean(),
   "prayedCount": zod.number(),
   "iPrayed": zod.boolean(),
+  "nextPrayAt": zod.string().nullable(),
   "createdAt": zod.string(),
   "updatedAt": zod.string(),
   "closedAt": zod.string().nullish()
@@ -580,6 +581,7 @@ export const GetPrayerRequestResponse = zod.object({
   "iCommitted": zod.boolean(),
   "prayedCount": zod.number(),
   "iPrayed": zod.boolean(),
+  "nextPrayAt": zod.string().nullable(),
   "updates": zod.array(zod.object({
   "id": zod.string(),
   "updateText": zod.string(),
@@ -641,6 +643,7 @@ export const UpdatePrayerRequestResponse = zod.object({
   "iCommitted": zod.boolean(),
   "prayedCount": zod.number(),
   "iPrayed": zod.boolean(),
+  "nextPrayAt": zod.string().nullable(),
   "updates": zod.array(zod.object({
   "id": zod.string(),
   "updateText": zod.string(),
@@ -707,7 +710,8 @@ export const RecordPrayedParams = zod.object({
 
 export const RecordPrayedResponse = zod.object({
   "prayedCount": zod.number(),
-  "iPrayed": zod.boolean()
+  "iPrayed": zod.boolean(),
+  "nextPrayAt": zod.string().nullable()
 })
 
 
@@ -975,6 +979,7 @@ export const GetPrayerHistoryResponseItem = zod.object({
   "iCommitted": zod.boolean(),
   "prayedCount": zod.number(),
   "iPrayed": zod.boolean(),
+  "nextPrayAt": zod.string().nullable(),
   "createdAt": zod.string(),
   "updatedAt": zod.string(),
   "closedAt": zod.string().nullish()

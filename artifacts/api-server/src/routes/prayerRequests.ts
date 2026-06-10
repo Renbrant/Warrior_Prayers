@@ -13,7 +13,7 @@ import {
   groupMembersTable,
   usersTable,
 } from "@workspace/db";
-import { eq, and, inArray, count, sql, isNull, ne } from "drizzle-orm";
+import { eq, and, inArray, count, sql, isNull, ne, desc } from "drizzle-orm";
 import { syncUserFromClerk, requireAuth } from "../lib/auth";
 import {
   requireGroupMember,
@@ -68,6 +68,7 @@ async function buildRequestSummary(
   iCommitted: boolean,
   prayedCount: number,
   iPrayed: boolean,
+  nextPrayAt: string | null,
   category: { name: string; color: string | null; icon: string | null } | null,
 ) {
   const prayerPersonName = decryptOrNull(req_row.prayerPersonNameEncrypted);
@@ -100,6 +101,7 @@ async function buildRequestSummary(
     iCommitted,
     prayedCount,
     iPrayed,
+    nextPrayAt,
     createdAt: req_row.createdAt,
     updatedAt: req_row.updatedAt,
     closedAt: req_row.closedAt,
@@ -115,6 +117,7 @@ async function buildRequestDetail(
   iCommitted: boolean,
   prayedCount: number,
   iPrayed: boolean,
+  nextPrayAt: string | null,
   category: { name: string; color: string | null; icon: string | null } | null,
   updates: { id: string; updateText: string; authorName: string | null; createdAt: Date }[],
 ) {
@@ -155,6 +158,7 @@ async function buildRequestDetail(
     iCommitted,
     prayedCount,
     iPrayed,
+    nextPrayAt,
     updates,
     createdAt: req_row.createdAt,
     updatedAt: req_row.updatedAt,
@@ -163,14 +167,16 @@ async function buildRequestDetail(
   };
 }
 
+const PRAYED_COOLDOWN_MS = 30 * 60 * 1000;
+
 async function getPrayedInfo(requestId: string, userId: string) {
   const [{ total }] = await db
     .select({ total: count() })
     .from(prayerLogsTable)
     .where(eq(prayerLogsTable.prayerRequestId, requestId));
 
-  const [myLog] = await db
-    .select({ id: prayerLogsTable.id })
+  const [myLatestLog] = await db
+    .select({ prayedAt: prayerLogsTable.prayedAt })
     .from(prayerLogsTable)
     .where(
       and(
@@ -178,9 +184,19 @@ async function getPrayedInfo(requestId: string, userId: string) {
         eq(prayerLogsTable.userId, userId),
       ),
     )
+    .orderBy(desc(prayerLogsTable.prayedAt))
     .limit(1);
 
-  return { prayedCount: Number(total), iPrayed: !!myLog };
+  const prayedCount = Number(total);
+
+  if (!myLatestLog) {
+    return { prayedCount, iPrayed: false, nextPrayAt: null };
+  }
+
+  const nextPrayAt = new Date(myLatestLog.prayedAt.getTime() + PRAYED_COOLDOWN_MS);
+  const iPrayed = Date.now() < nextPrayAt.getTime();
+
+  return { prayedCount, iPrayed, nextPrayAt: nextPrayAt.toISOString() };
 }
 
 async function getCommitmentInfo(requestId: string, userId: string) {
@@ -300,9 +316,9 @@ router.get(
       const results = await Promise.all(
         rows.map(async (row) => {
           const { commitmentCount, iCommitted } = await getCommitmentInfo(row.id, userId);
-          const { prayedCount, iPrayed } = await getPrayedInfo(row.id, userId);
+          const { prayedCount, iPrayed, nextPrayAt } = await getPrayedInfo(row.id, userId);
           const category = await getCategory(row.categoryId);
-          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category);
+          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, nextPrayAt, category);
         }),
       );
 
@@ -410,9 +426,9 @@ router.post(
       }
 
       const { commitmentCount, iCommitted } = await getCommitmentInfo(created.id, userId);
-      const { prayedCount, iPrayed } = await getPrayedInfo(created.id, userId);
+      const { prayedCount, iPrayed, nextPrayAt } = await getPrayedInfo(created.id, userId);
       const category = await getCategory(created.categoryId);
-      const detail = await buildRequestDetail(created, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category, []);
+      const detail = await buildRequestDetail(created, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, nextPrayAt, category, []);
 
       res.status(201).json(detail);
     } catch (err) {
@@ -454,10 +470,10 @@ router.get(
       }
 
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);
-      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
+      const { prayedCount, iPrayed, nextPrayAt } = await getPrayedInfo(requestId, userId);
       const category = await getCategory(row.categoryId);
       const updates = await getRecentUpdates(requestId);
-      const detail = await buildRequestDetail(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category, updates);
+      const detail = await buildRequestDetail(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, nextPrayAt, category, updates);
 
       res.json(detail);
     } catch (err) {
@@ -543,7 +559,7 @@ router.patch(
         .where(eq(prayerRequestsTable.id, requestId))
         .returning();
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);
-      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
+      const { prayedCount, iPrayed, nextPrayAt } = await getPrayedInfo(requestId, userId);
       const category = await getCategory(updated.categoryId);
       const recentUpdates = await getRecentUpdates(requestId);
       const detail = await buildRequestDetail(
@@ -555,6 +571,7 @@ router.patch(
         iCommitted,
         prayedCount,
         iPrayed,
+        nextPrayAt,
         category,
         recentUpdates,
       );
@@ -690,8 +707,8 @@ router.post(
         return;
       }
 
-      const [existing] = await db
-        .select({ id: prayerLogsTable.id })
+      const [latestLog] = await db
+        .select({ prayedAt: prayerLogsTable.prayedAt })
         .from(prayerLogsTable)
         .where(
           and(
@@ -699,14 +716,15 @@ router.post(
             eq(prayerLogsTable.userId, userId),
           ),
         )
+        .orderBy(desc(prayerLogsTable.prayedAt))
         .limit(1);
 
-      if (!existing) {
+      if (!latestLog || Date.now() >= latestLog.prayedAt.getTime() + PRAYED_COOLDOWN_MS) {
         await db.insert(prayerLogsTable).values({ prayerRequestId: requestId, userId });
       }
 
-      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
-      res.json({ prayedCount, iPrayed });
+      const { prayedCount, iPrayed, nextPrayAt } = await getPrayedInfo(requestId, userId);
+      res.json({ prayedCount, iPrayed, nextPrayAt });
     } catch (err) {
       req.log.error({ err }, "Failed to record prayer");
       res.status(500).json({ error: "Internal server error" });
@@ -1071,7 +1089,7 @@ router.post(
 
       const group = await getGroupSettings(groupId);
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);
-      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
+      const { prayedCount, iPrayed, nextPrayAt } = await getPrayedInfo(requestId, userId);
       const category = await getCategory(updated.categoryId);
       const recentUpdates = await getRecentUpdates(requestId);
       const detail = await buildRequestDetail(
@@ -1083,6 +1101,7 @@ router.post(
         iCommitted,
         prayedCount,
         iPrayed,
+        nextPrayAt,
         category,
         recentUpdates,
       );
@@ -1130,9 +1149,9 @@ router.get(
       const results = await Promise.all(
         rows.map(async (row) => {
           const { commitmentCount, iCommitted } = await getCommitmentInfo(row.id, userId);
-          const { prayedCount, iPrayed } = await getPrayedInfo(row.id, userId);
+          const { prayedCount, iPrayed, nextPrayAt } = await getPrayedInfo(row.id, userId);
           const category = await getCategory(row.categoryId);
-          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category);
+          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, nextPrayAt, category);
         }),
       );
 

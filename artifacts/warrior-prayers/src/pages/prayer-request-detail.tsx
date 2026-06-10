@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -145,6 +145,34 @@ export default function PrayerRequestDetail() {
         onError: () => toast({ title: t("common.error"), description: t("request.commitError"), variant: "destructive" }),
       },
     );
+  };
+
+  const [prayedCooldown, setPrayedCooldown] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!request?.nextPrayAt) {
+      setPrayedCooldown(null);
+      return;
+    }
+    const target = new Date(request.nextPrayAt).getTime();
+    const tick = () => {
+      const diff = Math.ceil((target - Date.now()) / 1000);
+      if (diff <= 0) {
+        setPrayedCooldown(null);
+        queryClient.invalidateQueries({ queryKey: getGetPrayerRequestQueryKey(groupId!, requestId!) });
+      } else {
+        setPrayedCooldown(diff);
+      }
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [request?.nextPrayAt, groupId, requestId, queryClient]);
+
+  const formatCooldown = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
   };
 
   const handleRecordPrayed = () => {
@@ -527,23 +555,24 @@ export default function PrayerRequestDetail() {
 
       <button
         onClick={handleRecordPrayed}
-        disabled={recordPrayed.isPending || request.iPrayed}
+        disabled={recordPrayed.isPending || !!prayedCooldown}
         className={`w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl border font-semibold text-sm transition-colors ${
-          request.iPrayed
+          prayedCooldown
             ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400 cursor-default"
             : "bg-card border-border hover:border-emerald-500/40 hover:bg-emerald-500/10"
         }`}
         data-testid="btn-prayed"
       >
-        <BookOpen className={`w-4 h-4 ${request.iPrayed ? "text-emerald-400" : ""}`} />
-        {request.iPrayed ? t("request.alreadyPrayed") : t("request.prayedBtn")}
-        {request.prayedCount > 0 && (
-          <span className="text-muted-foreground font-normal">
-            · {request.prayedCount === 1
+        <BookOpen className={`w-4 h-4 ${prayedCooldown ? "text-emerald-400" : ""}`} />
+        {prayedCooldown ? t("request.alreadyPrayed") : t("request.prayedBtn")}
+        <span className="text-muted-foreground font-normal text-xs">
+          {prayedCooldown && `· ${formatCooldown(prayedCooldown)}`}
+          {request.prayedCount > 0 && (
+            <>{prayedCooldown ? " · " : "· "}{request.prayedCount === 1
               ? t("request.prayedBy_one")
-              : t("request.prayedBy_other", { count: request.prayedCount })}
-          </span>
-        )}
+              : t("request.prayedBy_other", { count: request.prayedCount })}</>
+          )}
+        </span>
       </button>
 
       {request.updates.length > 0 && (

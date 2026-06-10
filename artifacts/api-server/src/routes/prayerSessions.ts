@@ -11,7 +11,7 @@ import {
   prayerLogsTable,
   usersTable,
 } from "@workspace/db";
-import { eq, and, inArray, count, sql } from "drizzle-orm";
+import { eq, and, inArray, count, sql, desc } from "drizzle-orm";
 import { syncUserFromClerk, requireAuth } from "../lib/auth";
 import {
   requireGroupMember,
@@ -412,8 +412,9 @@ router.post(
         .where(eq(prayerSessionItemsTable.id, existingItem.id))
         .returning();
 
-      const [existingLog] = await db
-        .select({ id: prayerLogsTable.id })
+      const PRAYED_COOLDOWN_MS = 30 * 60 * 1000;
+      const [latestSessionLog] = await db
+        .select({ prayedAt: prayerLogsTable.prayedAt })
         .from(prayerLogsTable)
         .where(
           and(
@@ -421,9 +422,10 @@ router.post(
             eq(prayerLogsTable.userId, userId),
           ),
         )
+        .orderBy(desc(prayerLogsTable.prayedAt))
         .limit(1);
 
-      if (!existingLog) {
+      if (!latestSessionLog || Date.now() >= latestSessionLog.prayedAt.getTime() + PRAYED_COOLDOWN_MS) {
         await db.insert(prayerLogsTable).values({ prayerRequestId: body.requestId, userId });
       }
 
