@@ -82,6 +82,7 @@ export default function PrayerRequestDetail() {
   const [closureReason, setClosureReason] = useState<string>("");
   const [testimony, setTestimony] = useState("");
   const [closingNote, setClosingNote] = useState("");
+  const [pendingArchive, setPendingArchive] = useState(false);
 
   const { data: group } = useGetGroup(groupId!, { query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId } });
   const { data: request, isLoading } = useGetPrayerRequest(groupId!, requestId!, {
@@ -145,9 +146,7 @@ export default function PrayerRequestDetail() {
     );
   };
 
-  const handleAddUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!updateText.trim()) return;
+  const executeAddUpdate = () => {
     const statusToSend = newStatus !== "keep" ? (newStatus as PrayerUpdateInputNewStatus) : undefined;
     const reasonToSend = statusToSend === "closed" ? (closureReason as PrayerUpdateInputClosureReason) || undefined : undefined;
 
@@ -171,6 +170,7 @@ export default function PrayerRequestDetail() {
           setTestimony("");
           setClosingNote("");
           setShowAddUpdate(false);
+          setPendingArchive(false);
           queryClient.invalidateQueries({ queryKey: getGetPrayerRequestQueryKey(groupId!, requestId!) });
           queryClient.invalidateQueries({ queryKey: getListPrayerRequestsQueryKey(groupId!) });
           queryClient.invalidateQueries({ queryKey: getGetPrayerHistoryQueryKey(groupId!) });
@@ -179,6 +179,16 @@ export default function PrayerRequestDetail() {
         onError: () => toast({ title: "Error", description: "Could not add update.", variant: "destructive" }),
       },
     );
+  };
+
+  const handleAddUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!updateText.trim()) return;
+    if (newStatus === "archived") {
+      setPendingArchive(true);
+      return;
+    }
+    executeAddUpdate();
   };
 
   const handleDelete = () => {
@@ -547,6 +557,27 @@ export default function PrayerRequestDetail() {
           )}
         </section>
       )}
+
+      <AlertDialog open={pendingArchive} onOpenChange={(open) => { if (!open) setPendingArchive(false); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive Prayer Request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Archiving will hide this request from the active list. Only admins can view archived requests. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={executeAddUpdate}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="btn-confirm-archive"
+            >
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

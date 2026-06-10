@@ -316,6 +316,20 @@ router.patch(
         metadata: updates,
       });
 
+      const privacyFields = ["hidePrayerPersonNames", "allowAnonymousRequests", "adminsCanViewAnonymousAuthors"];
+      const hasPrivacyChange = privacyFields.some((f) => f in updates);
+      if (hasPrivacyChange) {
+        await db.insert(auditLogsTable).values({
+          groupId,
+          action: "privacy_setting_changed",
+          entityType: "prayer_group",
+          entityId: groupId,
+          metadata: Object.fromEntries(
+            privacyFields.filter((f) => f in updates).map((f) => [f, (updates as Record<string, unknown>)[f]]),
+          ),
+        });
+      }
+
       const [memberCountResult] = await db
         .select({ cnt: count() })
         .from(groupMembersTable)

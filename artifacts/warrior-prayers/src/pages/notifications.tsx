@@ -38,7 +38,7 @@ export default function Notifications() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data, isLoading } = useListNotifications({
+  const { data, isLoading, isError, refetch } = useListNotifications({
     query: { queryKey: getListNotificationsQueryKey() },
   });
 
@@ -113,6 +113,22 @@ export default function Notifications() {
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-20 rounded-2xl" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="bg-card border border-border rounded-3xl p-16 text-center space-y-4">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+            <Bell className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground font-medium">Could not load notifications</p>
+          <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+          <Button
+            variant="outline"
+            onClick={() => void refetch()}
+            className="rounded-full"
+            data-testid="btn-retry"
+          >
+            Try Again
+          </Button>
         </div>
       ) : notifications.length === 0 ? (
         <div className="bg-card border border-border rounded-3xl p-16 text-center space-y-4">

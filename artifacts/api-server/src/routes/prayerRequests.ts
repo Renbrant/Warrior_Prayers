@@ -958,30 +958,31 @@ router.post(
         metadata: body.newStatus ? { newStatus: body.newStatus, closureReason: body.closureReason } : undefined,
       });
 
-      if (body.newStatus === "closed" && body.closureReason === "answered_prayer") {
-        const committedMembers = await db
-          .select({ userId: prayerCommitmentsTable.userId })
-          .from(prayerCommitmentsTable)
-          .where(
-            and(
-              eq(prayerCommitmentsTable.prayerRequestId, requestId),
-              ne(prayerCommitmentsTable.userId, userId),
-            ),
-          );
+      const committedMembers = await db
+        .select({ userId: prayerCommitmentsTable.userId })
+        .from(prayerCommitmentsTable)
+        .where(
+          and(
+            eq(prayerCommitmentsTable.prayerRequestId, requestId),
+            ne(prayerCommitmentsTable.userId, userId),
+          ),
+        );
 
-        if (committedMembers.length > 0) {
-          await db.insert(notificationsTable).values(
-            committedMembers.map((m) => ({
-              userId: m.userId,
-              groupId,
-              type: "request_answered",
-              title: "Prayer Answered! 🙌",
-              message: `"${row.title}" has been marked as answered prayer.`,
-              relatedEntityType: "prayer_request",
-              relatedEntityId: requestId,
-            })),
-          );
-        }
+      if (committedMembers.length > 0) {
+        const isAnswered = body.newStatus === "closed" && body.closureReason === "answered_prayer";
+        await db.insert(notificationsTable).values(
+          committedMembers.map((m) => ({
+            userId: m.userId,
+            groupId,
+            type: isAnswered ? "request_answered" : "new_update",
+            title: isAnswered ? "Prayer Answered! 🙌" : "Update on a Prayer Request",
+            message: isAnswered
+              ? `"${row.title}" has been marked as answered prayer.`
+              : `There's a new update on "${row.title}"`,
+            relatedEntityType: "prayer_request",
+            relatedEntityId: requestId,
+          })),
+        );
       }
 
       const group = await getGroupSettings(groupId);
