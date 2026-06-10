@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="DOCS/Banner2.png" alt="Warrior Prayers Banner" width="100%">
+</p>
+
 # Warrior Prayers
 
 **Warrior Prayers** is a private prayer group management application designed to help churches, ministries, families, and small groups organize prayer requests with care, privacy, and purpose.
