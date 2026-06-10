@@ -308,6 +308,14 @@ router.patch(
         return;
       }
 
+      await db.insert(auditLogsTable).values({
+        groupId,
+        action: "group_settings_updated",
+        entityType: "prayer_group",
+        entityId: groupId,
+        metadata: updates,
+      });
+
       const [memberCountResult] = await db
         .select({ cnt: count() })
         .from(groupMembersTable)

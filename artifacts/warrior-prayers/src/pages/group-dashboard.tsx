@@ -46,7 +46,6 @@ export default function GroupDashboard() {
   });
 
   const isAdmin = group?.myRole === "admin";
-  const isMod = group?.myRole === "admin" || group?.myRole === "moderator";
 
   if (isGroupLoading) {
     return (
@@ -113,7 +112,7 @@ export default function GroupDashboard() {
             )}
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
-            {isMod && (
+            {isAdmin && (
               <Button
                 variant="outline"
                 size="sm"

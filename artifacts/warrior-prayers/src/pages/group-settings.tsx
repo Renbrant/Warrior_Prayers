@@ -62,6 +62,7 @@ export default function GroupSettings() {
   const [churchName, setChurchName] = useState("");
   const [city, setCity] = useState("");
   const [verse, setVerse] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [hidePrayerPersonNames, setHidePrayerPersonNames] = useState(false);
   const [allowCustomCategories, setAllowCustomCategories] = useState(true);
   const [allowComments, setAllowComments] = useState(true);
@@ -75,6 +76,7 @@ export default function GroupSettings() {
       setChurchName(group.churchName ?? "");
       setCity(group.city ?? "");
       setVerse(group.verse ?? "");
+      setImageUrl(group.imageUrl ?? "");
       setHidePrayerPersonNames(group.hidePrayerPersonNames ?? false);
       setAllowCustomCategories(group.allowCustomCategories ?? true);
       setAllowComments(group.allowComments ?? true);
@@ -99,6 +101,7 @@ export default function GroupSettings() {
           churchName: churchName || undefined,
           city: city || undefined,
           verse: verse || undefined,
+          imageUrl: imageUrl || undefined,
           hidePrayerPersonNames,
           allowCustomCategories,
           allowComments,
@@ -205,6 +208,18 @@ export default function GroupSettings() {
               data-testid="input-verse"
               value={verse}
               onChange={(e) => setVerse(e.target.value)}
+              className="rounded-xl h-12"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="imageUrl">Group Image URL</Label>
+            <Input
+              id="imageUrl"
+              data-testid="input-image-url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://example.com/image.jpg"
               className="rounded-xl h-12"
             />
           </div>

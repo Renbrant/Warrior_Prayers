@@ -412,12 +412,19 @@ router.post(
         });
       }
 
+      const newUsedCount = invite.usedCount + 1;
+      const isEmailInvite = !!invite.invitedEmail;
+      const isExhausted = invite.maxUses !== null && newUsedCount >= invite.maxUses;
+
       await db
         .update(groupInvitesTable)
         .set({
-          status: "accepted",
-          acceptedAt: new Date(),
-          usedCount: invite.usedCount + 1,
+          usedCount: newUsedCount,
+          ...(isEmailInvite
+            ? { status: "accepted", acceptedAt: new Date() }
+            : isExhausted
+              ? { status: "expired" }
+              : {}),
         })
         .where(eq(groupInvitesTable.id, invite.id));
 
@@ -492,6 +499,12 @@ router.post(
         res
           .status(400)
           .json({ error: `Invite is already ${invite.status}` });
+        return;
+      }
+
+      const dbUserEmail = req.dbUserEmail;
+      if (invite.invitedEmail && dbUserEmail && invite.invitedEmail !== dbUserEmail) {
+        res.status(403).json({ error: "This invite was not sent to you" });
         return;
       }
 
