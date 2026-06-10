@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Users, Heart, Bell, User, ChevronRight } from "lucide-react";
+import { Home, Users, Heart, Bell, User, ChevronRight, HandCoins } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   useListNotifications,
@@ -103,7 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           )}
         </nav>
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-2">
           <Link
             href="/app/profile"
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-medium"
@@ -112,6 +112,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             <User className="w-5 h-5" />
             <span>{t("profile.title", "Profile & Settings")}</span>
           </Link>
+          <a
+            href="https://www.paypal.com/pool/9pW16FpIDW?sr=wccr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors font-medium"
+            data-testid="link-donate"
+          >
+            <HandCoins className="w-5 h-5 shrink-0" />
+            <span>Apoiar o projeto</span>
+          </a>
         </div>
       </aside>
 
