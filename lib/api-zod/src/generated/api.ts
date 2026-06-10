@@ -738,7 +738,8 @@ export const StartPrayerSessionParams = zod.object({
 export const StartPrayerSessionBody = zod.object({
   "mode": zod.enum(['compact', 'detailed']),
   "organizationType": zod.enum(['priority', 'category']).optional(),
-  "filter": zod.enum(['all_active', 'urgent_only', 'important_urgent', 'not_yet_prayed', 'already_praying', 'created_by_me', 'anonymous', 'recent_updates']).optional()
+  "filter": zod.enum(['all_active', 'urgent_only', 'important_urgent', 'not_yet_prayed', 'already_praying', 'created_by_me', 'anonymous', 'recent_updates', 'by_category']).optional(),
+  "categoryId": zod.string().optional()
 })
 
 
@@ -781,6 +782,66 @@ export const CompletePrayerSessionResponse = zod.object({
   "title": zod.string()
 })),
   "completedAt": zod.string()
+})
+
+
+/**
+ * @summary Get session details with current item states
+ */
+export const GetSessionRequestsParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "sessionId": zod.coerce.string()
+})
+
+export const GetSessionRequestsResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "mode": zod.enum(['compact', 'detailed']),
+  "organizationType": zod.enum(['priority', 'category']),
+  "filter": zod.string().nullish(),
+  "startedAt": zod.string(),
+  "requests": zod.array(zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "title": zod.string(),
+  "prayerPersonName": zod.string().nullish(),
+  "prayerPersonInitials": zod.string().nullish(),
+  "categoryId": zod.string().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "urgency": zod.enum(['normal', 'important', 'urgent']),
+  "status": zod.enum(['active', 'follow_up', 'closed', 'archived']),
+  "isAnonymous": zod.boolean(),
+  "description": zod.string().nullish(),
+  "latestUpdate": zod.string().nullish(),
+  "importantDate": zod.string().nullish(),
+  "commitmentCount": zod.number(),
+  "iCommitted": zod.boolean(),
+  "sessionItemId": zod.string(),
+  "prayedAt": zod.string().nullish(),
+  "skippedAt": zod.string().nullish(),
+  "createdAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary Mark a request as skipped within a session
+ */
+export const MarkSkippedParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "sessionId": zod.coerce.string()
+})
+
+export const MarkSkippedBody = zod.object({
+  "requestId": zod.string()
+})
+
+export const MarkSkippedResponse = zod.object({
+  "sessionItemId": zod.string(),
+  "requestId": zod.string(),
+  "skippedAt": zod.string()
 })
 
 

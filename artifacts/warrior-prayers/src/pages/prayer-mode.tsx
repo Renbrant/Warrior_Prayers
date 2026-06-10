@@ -3,9 +3,12 @@ import { useParams, useLocation } from "wouter";
 import {
   useStartPrayerSession,
   useMarkPrayed,
+  useMarkSkipped,
   useCompletePrayerSession,
   useGetGroup,
   getGetGroupQueryKey,
+  useListCategories,
+  getListCategoriesQueryKey,
 } from "@workspace/api-client-react";
 import type { SessionRequest, SessionSummary } from "@workspace/api-client-react";
 import {
@@ -31,7 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 type Phase = "setup" | "compact" | "detailed" | "complete";
 type Mode = "compact" | "detailed";
 type OrgType = "priority" | "category";
-type FilterType = "all_active" | "urgent_only" | "important_urgent" | "not_yet_prayed" | "already_praying" | "created_by_me" | "anonymous" | "recent_updates";
+type FilterType = "all_active" | "urgent_only" | "important_urgent" | "not_yet_prayed" | "already_praying" | "created_by_me" | "anonymous" | "recent_updates" | "by_category";
 
 // ─── Urgency helpers ─────────────────────────────────────────────────────────
 
@@ -62,13 +65,18 @@ function SetupPhase({
 }: {
   groupId: string;
   groupName: string;
-  onStart: (mode: Mode, orgType: OrgType, filter: FilterType) => void;
+  onStart: (mode: Mode, orgType: OrgType, filter: FilterType, categoryId?: string) => void;
   isLoading: boolean;
 }) {
   const [mode, setMode] = useState<Mode>("detailed");
   const [orgType, setOrgType] = useState<OrgType>("priority");
   const [filter, setFilter] = useState<FilterType>("all_active");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [, setLocation] = useLocation();
+
+  const { data: categories } = useListCategories(groupId, {
+    query: { queryKey: getListCategoriesQueryKey(groupId), enabled: !!groupId },
+  });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -150,6 +158,7 @@ function SetupPhase({
                 ["created_by_me", "My own prayer requests"],
                 ["anonymous", "Anonymous requests"],
                 ["recent_updates", "Recently updated (last 7 days)"],
+                ["by_category", "Specific category"],
               ] as [FilterType, string][]
             ).map(([value, label]) => (
               <button
@@ -169,8 +178,27 @@ function SetupPhase({
           </div>
         </section>
 
+        {filter === "by_category" && categories && categories.length > 0 && (
+          <section className="space-y-3 -mt-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose Category</h3>
+            <select
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              className="w-full px-4 py-3 rounded-2xl border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              data-testid="select-category"
+            >
+              <option value="">All categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon ? `${cat.icon} ` : ""}{cat.name}
+                </option>
+              ))}
+            </select>
+          </section>
+        )}
+
         <Button
-          onClick={() => onStart(mode, orgType, filter)}
+          onClick={() => onStart(mode, orgType, filter, filter === "by_category" && selectedCategoryId ? selectedCategoryId : undefined)}
           disabled={isLoading}
           className="w-full h-14 rounded-full text-base font-semibold shadow-lg shadow-primary/20"
           data-testid="btn-start-session"
@@ -557,10 +585,12 @@ function DetailedPhase({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prayedIds, setPrayedIds] = useState<Set<string>>(new Set());
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [showExit, setShowExit] = useState(false);
   const [, setLocation] = useLocation();
 
   const markPrayedMutation = useMarkPrayed();
+  const markSkippedMutation = useMarkSkipped();
 
   const requests = session.requests;
   const total = requests.length;
@@ -573,6 +603,19 @@ function DetailedPhase({
       {
         onSuccess: () => {
           setPrayedIds((prev) => new Set([...prev, current.id]));
+        },
+      },
+    );
+  }
+
+  function handleSkip() {
+    if (!current || skippedIds.has(current.id)) return;
+    markSkippedMutation.mutate(
+      { groupId, sessionId: session.id, data: { requestId: current.id } },
+      {
+        onSuccess: () => {
+          setSkippedIds((prev) => new Set([...prev, current.id]));
+          handleNext();
         },
       },
     );
@@ -713,21 +756,32 @@ function DetailedPhase({
               )}
             </Button>
 
-            <Button
-              onClick={handleNext}
-              disabled={isCompleting}
-              variant="outline"
-              className="w-full h-12 rounded-full font-semibold"
-              data-testid="btn-next"
-            >
-              {isLast ? (
-                isCompleting ? "Finishing…" : "Finish Session"
-              ) : (
-                <>
-                  Next Request <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleSkip}
+                disabled={isPrayed || skippedIds.has(current.id) || markSkippedMutation.isPending}
+                variant="ghost"
+                className="flex-1 h-11 rounded-full font-semibold text-muted-foreground hover:text-foreground"
+                data-testid="btn-skip"
+              >
+                Skip
+              </Button>
+              <Button
+                onClick={handleNext}
+                disabled={isCompleting}
+                variant="outline"
+                className="flex-1 h-11 rounded-full font-semibold"
+                data-testid="btn-next"
+              >
+                {isLast ? (
+                  isCompleting ? "Finishing…" : "Finish Session"
+                ) : (
+                  <>
+                    Next <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {currentIndex > 0 && (
@@ -748,7 +802,7 @@ function DetailedPhase({
           <div className="bg-card border border-border rounded-3xl p-6 max-w-sm w-full space-y-5">
             <h3 className="font-bold text-foreground text-lg">Exit Prayer Session?</h3>
             <p className="text-sm text-muted-foreground">
-              Your progress ({prayedIds.size} prayed) won't be saved if you exit now.
+              Your progress is already saved — {prayedIds.size} request{prayedIds.size !== 1 ? "s" : ""} marked as prayed. You can return any time.
             </p>
             <div className="flex gap-3">
               <Button
@@ -907,10 +961,10 @@ export default function PrayerMode() {
   const completeMutation = useCompletePrayerSession();
 
   const handleStart = useCallback(
-    (mode: Mode, orgType: OrgType, filter: FilterType) => {
+    (mode: Mode, orgType: OrgType, filter: FilterType, categoryId?: string) => {
       setSessionMode(mode);
       startMutation.mutate(
-        { groupId: groupId!, data: { mode, organizationType: orgType, filter } },
+        { groupId: groupId!, data: { mode, organizationType: orgType, filter, ...(categoryId ? { categoryId } : {}) } },
         {
           onSuccess: (data) => {
             if (data.requests.length === 0) {

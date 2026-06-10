@@ -50,6 +50,7 @@ import type {
   PrayerUpdateInput,
   SessionMarkInput,
   SessionMarkResult,
+  SessionSkipResult,
   SessionSummary,
   UserProfile,
   UserProfileUpdate
@@ -2679,6 +2680,162 @@ export const useCompletePrayerSession = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getCompletePrayerSessionMutationOptions(options));
+    }
+
+export const getGetSessionRequestsUrl = (groupId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/sessions/${sessionId}`
+}
+
+/**
+ * @summary Get session details with current item states
+ */
+export const getSessionRequests = async (groupId: string,
+    sessionId: string, options?: RequestInit): Promise<PrayerSessionDetail> => {
+
+  return customFetch<PrayerSessionDetail>(getGetSessionRequestsUrl(groupId,sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSessionRequestsQueryKey = (groupId: string,
+    sessionId: string,) => {
+    return [
+    `/api/groups/${groupId}/sessions/${sessionId}`
+    ] as const;
+    }
+
+
+export const getGetSessionRequestsQueryOptions = <TData = Awaited<ReturnType<typeof getSessionRequests>>, TError = ErrorType<void>>(groupId: string,
+    sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionRequestsQueryKey(groupId,sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSessionRequests>>> = ({ signal }) => getSessionRequests(groupId,sessionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId && sessionId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSessionRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSessionRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof getSessionRequests>>>
+export type GetSessionRequestsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get session details with current item states
+ */
+
+export function useGetSessionRequests<TData = Awaited<ReturnType<typeof getSessionRequests>>, TError = ErrorType<void>>(
+ groupId: string,
+    sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessionRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSessionRequestsQueryOptions(groupId,sessionId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getMarkSkippedUrl = (groupId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/sessions/${sessionId}/mark-skipped`
+}
+
+/**
+ * @summary Mark a request as skipped within a session
+ */
+export const markSkipped = async (groupId: string,
+    sessionId: string,
+    sessionMarkInput: SessionMarkInput, options?: RequestInit): Promise<SessionSkipResult> => {
+
+  return customFetch<SessionSkipResult>(getMarkSkippedUrl(groupId,sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sessionMarkInput,)
+  }
+);}
+
+
+
+
+export const getMarkSkippedMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markSkipped>>, TError,{groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markSkipped>>, TError,{groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}, TContext> => {
+
+const mutationKey = ['markSkipped'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markSkipped>>, {groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}> = (props) => {
+          const {groupId,sessionId,data} = props ?? {};
+
+          return  markSkipped(groupId,sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkSkippedMutationResult = NonNullable<Awaited<ReturnType<typeof markSkipped>>>
+    export type MarkSkippedMutationBody = BodyType<SessionMarkInput>
+    export type MarkSkippedMutationError = ErrorType<void>
+
+    /**
+ * @summary Mark a request as skipped within a session
+ */
+export const useMarkSkipped = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markSkipped>>, TError,{groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markSkipped>>,
+        TError,
+        {groupId: string;sessionId: string;data: BodyType<SessionMarkInput>},
+        TContext
+      > => {
+      return useMutation(getMarkSkippedMutationOptions(options));
     }
 
 export const getGetPrayerHistoryUrl = (groupId: string,

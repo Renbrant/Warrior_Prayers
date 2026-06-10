@@ -570,12 +570,14 @@ export const PrayerSessionInputFilter = {
   created_by_me: 'created_by_me',
   anonymous: 'anonymous',
   recent_updates: 'recent_updates',
+  by_category: 'by_category',
 } as const;
 
 export interface PrayerSessionInput {
   mode: PrayerSessionInputMode;
   organizationType?: PrayerSessionInputOrganizationType;
   filter?: PrayerSessionInputFilter;
+  categoryId?: string;
 }
 
 export type SessionRequestUrgency = typeof SessionRequestUrgency[keyof typeof SessionRequestUrgency];
@@ -627,6 +629,8 @@ export interface SessionRequest {
   sessionItemId: string;
   /** @nullable */
   prayedAt?: string | null;
+  /** @nullable */
+  skippedAt?: string | null;
   createdAt: string;
 }
 
@@ -665,6 +669,12 @@ export interface SessionMarkResult {
   sessionItemId: string;
   requestId: string;
   prayedAt: string;
+}
+
+export interface SessionSkipResult {
+  sessionItemId: string;
+  requestId: string;
+  skippedAt: string;
 }
 
 export type SessionSummaryPrayedRequestsItem = {

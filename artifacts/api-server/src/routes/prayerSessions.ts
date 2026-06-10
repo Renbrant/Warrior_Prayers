@@ -116,6 +116,7 @@ router.post(
       const mode = body.mode;
       const organizationType = body.organizationType ?? "priority";
       const filter = body.filter ?? "all_active";
+      const categoryId = (body as { categoryId?: string }).categoryId ?? null;
 
       const groupSettings = await getGroupSettings(groupId);
       if (!groupSettings) {
@@ -174,6 +175,10 @@ router.post(
             : [];
         const recentIds = new Set(recentUpdateRows.map((r) => r.prayerRequestId));
         rows = rows.filter((r) => recentIds.has(r.id));
+      } else if (filter === "by_category") {
+        if (categoryId) {
+          rows = rows.filter((r) => r.categoryId === categoryId);
+        }
       } else if (filter === "not_yet_prayed") {
         const prayedRows =
           rows.length > 0
@@ -323,6 +328,7 @@ router.post(
           iCommitted: myCommits.has(row.id),
           sessionItemId: item?.id ?? "",
           prayedAt: item?.prayedAt ? item.prayedAt.toISOString() : null,
+          skippedAt: item?.skippedAt ? item.skippedAt.toISOString() : null,
           createdAt: row.createdAt.toISOString(),
         };
       });
@@ -521,6 +527,224 @@ router.post(
       });
     } catch (err) {
       req.log.error({ err }, "Failed to complete prayer session");
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+// ─── GET /groups/:groupId/sessions/:sessionId ────────────────────────────────
+
+router.get(
+  "/groups/:groupId/sessions/:sessionId",
+  syncUserFromClerk,
+  requireAuth,
+  requireGroupMember,
+  async (req: GroupAuthRequest, res) => {
+    try {
+      const groupId = req.groupId!;
+      const userId = req.dbUserId!;
+      const memberRole = req.memberRole!;
+      const sessionId = String(req.params.sessionId);
+
+      const [session] = await db
+        .select()
+        .from(prayerSessionsTable)
+        .where(
+          and(
+            eq(prayerSessionsTable.id, sessionId),
+            eq(prayerSessionsTable.groupId, groupId),
+            eq(prayerSessionsTable.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      if (!session) {
+        res.status(404).json({ error: "Session not found" });
+        return;
+      }
+
+      const groupSettings = await getGroupSettings(groupId);
+      if (!groupSettings) {
+        res.status(404).json({ error: "Group not found" });
+        return;
+      }
+
+      const items = await db
+        .select()
+        .from(prayerSessionItemsTable)
+        .where(eq(prayerSessionItemsTable.prayerSessionId, sessionId));
+
+      const requestIds = items.map((i) => i.prayerRequestId);
+
+      if (requestIds.length === 0) {
+        res.json({
+          id: session.id,
+          groupId: session.groupId,
+          mode: session.mode,
+          organizationType: session.organizationType,
+          filter: (session.filters as { filter?: string }).filter ?? null,
+          startedAt: session.startedAt.toISOString(),
+          requests: [],
+        });
+        return;
+      }
+
+      const rows = await db
+        .select()
+        .from(prayerRequestsTable)
+        .where(
+          and(
+            inArray(prayerRequestsTable.id, requestIds),
+            eq(prayerRequestsTable.groupId, groupId),
+          ),
+        );
+
+      const [categoryRows, { counts, myCommits }, latestUpdates] = await Promise.all([
+        db
+          .select()
+          .from(prayerCategoriesTable)
+          .where(
+            inArray(
+              prayerCategoriesTable.id,
+              rows.map((r) => r.categoryId).filter((id): id is string => id != null),
+            ),
+          ),
+        getCommitmentCounts(requestIds, userId),
+        getLatestUpdates(requestIds),
+      ]);
+
+      const categoryMap = new Map(categoryRows.map((c) => [c.id, c]));
+      const itemMap = new Map(items.map((i) => [i.prayerRequestId, i]));
+      const isMod = memberRole === "admin" || memberRole === "moderator";
+
+      const userIds = [...new Set(rows.map((r) => r.createdByUserId))];
+      const userRows =
+        userIds.length > 0
+          ? await db
+              .select({ id: usersTable.id, fullName: usersTable.fullName })
+              .from(usersTable)
+              .where(inArray(usersTable.id, userIds))
+          : [];
+      const userMap = new Map(userRows.map((u) => [u.id, u.fullName]));
+
+      const sessionRequests = rows.map((row) => {
+        const category = row.categoryId ? (categoryMap.get(row.categoryId) ?? null) : null;
+        const item = itemMap.get(row.id);
+        const prayerPersonName = groupSettings.hidePrayerPersonNames
+          ? null
+          : decryptOrNull(row.prayerPersonNameEncrypted);
+        const description = decryptOrNull(row.descriptionEncrypted);
+        const latestUpdate = latestUpdates[row.id] ?? null;
+
+        return {
+          id: row.id,
+          groupId: row.groupId,
+          title: row.title,
+          prayerPersonName,
+          prayerPersonInitials: row.prayerPersonInitials,
+          categoryId: row.categoryId,
+          categoryName: category?.name ?? null,
+          categoryColor: category?.color ?? null,
+          categoryIcon: category?.icon ?? null,
+          urgency: row.urgency,
+          status: row.status,
+          isAnonymous: row.isAnonymous,
+          description,
+          latestUpdate: latestUpdate || null,
+          importantDate: row.importantDate ? row.importantDate.toISOString() : null,
+          commitmentCount: counts[row.id] ?? 0,
+          iCommitted: myCommits.has(row.id),
+          sessionItemId: item?.id ?? "",
+          prayedAt: item?.prayedAt ? item.prayedAt.toISOString() : null,
+          skippedAt: item?.skippedAt ? item.skippedAt.toISOString() : null,
+          createdAt: row.createdAt.toISOString(),
+        };
+      });
+
+      res.json({
+        id: session.id,
+        groupId: session.groupId,
+        mode: session.mode,
+        organizationType: session.organizationType,
+        filter: (session.filters as { filter?: string }).filter ?? null,
+        startedAt: session.startedAt.toISOString(),
+        requests: sessionRequests,
+      });
+    } catch (err) {
+      req.log.error({ err }, "Failed to get session requests");
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+// ─── POST /groups/:groupId/sessions/:sessionId/mark-skipped ──────────────────
+
+router.post(
+  "/groups/:groupId/sessions/:sessionId/mark-skipped",
+  syncUserFromClerk,
+  requireAuth,
+  requireGroupMember,
+  async (req: GroupAuthRequest, res) => {
+    try {
+      const groupId = req.groupId!;
+      const userId = req.dbUserId!;
+      const sessionId = String(req.params.sessionId);
+      const body = req.body as { requestId: string };
+
+      if (!body.requestId) {
+        res.status(400).json({ error: "requestId is required" });
+        return;
+      }
+
+      const [session] = await db
+        .select()
+        .from(prayerSessionsTable)
+        .where(
+          and(
+            eq(prayerSessionsTable.id, sessionId),
+            eq(prayerSessionsTable.groupId, groupId),
+            eq(prayerSessionsTable.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      if (!session) {
+        res.status(404).json({ error: "Session not found" });
+        return;
+      }
+
+      // Only allow skipping seeded session items (prevents IDOR)
+      const [existingItem] = await db
+        .select()
+        .from(prayerSessionItemsTable)
+        .where(
+          and(
+            eq(prayerSessionItemsTable.prayerSessionId, sessionId),
+            eq(prayerSessionItemsTable.prayerRequestId, body.requestId),
+          ),
+        )
+        .limit(1);
+
+      if (!existingItem) {
+        res.status(404).json({ error: "Request not found in this session" });
+        return;
+      }
+
+      const now = new Date();
+
+      const [item] = await db
+        .update(prayerSessionItemsTable)
+        .set({ skippedAt: now })
+        .where(eq(prayerSessionItemsTable.id, existingItem.id))
+        .returning();
+
+      res.json({
+        sessionItemId: item.id,
+        requestId: body.requestId,
+        skippedAt: item.skippedAt!.toISOString(),
+      });
+    } catch (err) {
+      req.log.error({ err }, "Failed to mark request as skipped");
       res.status(500).json({ error: "Internal server error" });
     }
   },

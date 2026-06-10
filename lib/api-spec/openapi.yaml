@@ -1010,6 +1010,76 @@ paths:
         "404":
           description: Session not found
 
+  /groups/{groupId}/sessions/{sessionId}:
+    get:
+      operationId: getSessionRequests
+      tags: [sessions]
+      summary: Get session details with current item states
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session detail with latest item states
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerSessionDetail"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+        "404":
+          description: Session not found
+
+  /groups/{groupId}/sessions/{sessionId}/mark-skipped:
+    post:
+      operationId: markSkipped
+      tags: [sessions]
+      summary: Mark a request as skipped within a session
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionMarkInput"
+      responses:
+        "200":
+          description: Item skipped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionSkipResult"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+        "404":
+          description: Session or request not found
+
   /groups/{groupId}/history:
     get:
       operationId: getPrayerHistory
@@ -1775,7 +1845,9 @@ components:
           enum: [priority, category]
         filter:
           type: string
-          enum: [all_active, urgent_only, important_urgent, not_yet_prayed, already_praying, created_by_me, anonymous, recent_updates]
+          enum: [all_active, urgent_only, important_urgent, not_yet_prayed, already_praying, created_by_me, anonymous, recent_updates, by_category]
+        categoryId:
+          type: string
       required:
         - mode
 
@@ -1821,6 +1893,8 @@ components:
         sessionItemId:
           type: string
         prayedAt:
+          type: ["string", "null"]
+        skippedAt:
           type: ["string", "null"]
         createdAt:
           type: string
@@ -1886,6 +1960,20 @@ components:
         - sessionItemId
         - requestId
         - prayedAt
+
+    SessionSkipResult:
+      type: object
+      properties:
+        sessionItemId:
+          type: string
+        requestId:
+          type: string
+        skippedAt:
+          type: string
+      required:
+        - sessionItemId
+        - requestId
+        - skippedAt
 
     SessionSummary:
       type: object
