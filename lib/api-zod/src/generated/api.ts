@@ -729,6 +729,62 @@ export const AddPrayerUpdateBody = zod.object({
 
 
 /**
+ * @summary Start a new Prayer Mode session
+ */
+export const StartPrayerSessionParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const StartPrayerSessionBody = zod.object({
+  "mode": zod.enum(['compact', 'detailed']),
+  "organizationType": zod.enum(['priority', 'category']).optional(),
+  "filter": zod.enum(['all_active', 'urgent_only', 'important_urgent', 'already_praying', 'created_by_me']).optional()
+})
+
+
+/**
+ * @summary Mark a request as prayed within a session
+ */
+export const MarkPrayedParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "sessionId": zod.coerce.string()
+})
+
+export const MarkPrayedBody = zod.object({
+  "requestId": zod.string()
+})
+
+export const MarkPrayedResponse = zod.object({
+  "sessionItemId": zod.string(),
+  "requestId": zod.string(),
+  "prayedAt": zod.string()
+})
+
+
+/**
+ * @summary Complete a Prayer Mode session and get summary
+ */
+export const CompletePrayerSessionParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "sessionId": zod.coerce.string()
+})
+
+export const CompletePrayerSessionResponse = zod.object({
+  "sessionId": zod.string(),
+  "mode": zod.string(),
+  "prayedCount": zod.number(),
+  "totalCount": zod.number(),
+  "durationSeconds": zod.number(),
+  "categoriesCovered": zod.array(zod.string()),
+  "prayedRequests": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string()
+})),
+  "completedAt": zod.string()
+})
+
+
+/**
  * @summary Get prayer history (closed and archived requests)
  */
 export const GetPrayerHistoryParams = zod.object({

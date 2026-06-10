@@ -542,6 +542,144 @@ export interface CommitmentStatus {
   iCommitted: boolean;
 }
 
+export type PrayerSessionInputMode = typeof PrayerSessionInputMode[keyof typeof PrayerSessionInputMode];
+
+
+export const PrayerSessionInputMode = {
+  compact: 'compact',
+  detailed: 'detailed',
+} as const;
+
+export type PrayerSessionInputOrganizationType = typeof PrayerSessionInputOrganizationType[keyof typeof PrayerSessionInputOrganizationType];
+
+
+export const PrayerSessionInputOrganizationType = {
+  priority: 'priority',
+  category: 'category',
+} as const;
+
+export type PrayerSessionInputFilter = typeof PrayerSessionInputFilter[keyof typeof PrayerSessionInputFilter];
+
+
+export const PrayerSessionInputFilter = {
+  all_active: 'all_active',
+  urgent_only: 'urgent_only',
+  important_urgent: 'important_urgent',
+  already_praying: 'already_praying',
+  created_by_me: 'created_by_me',
+} as const;
+
+export interface PrayerSessionInput {
+  mode: PrayerSessionInputMode;
+  organizationType?: PrayerSessionInputOrganizationType;
+  filter?: PrayerSessionInputFilter;
+}
+
+export type SessionRequestUrgency = typeof SessionRequestUrgency[keyof typeof SessionRequestUrgency];
+
+
+export const SessionRequestUrgency = {
+  normal: 'normal',
+  important: 'important',
+  urgent: 'urgent',
+} as const;
+
+export type SessionRequestStatus = typeof SessionRequestStatus[keyof typeof SessionRequestStatus];
+
+
+export const SessionRequestStatus = {
+  active: 'active',
+  follow_up: 'follow_up',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export interface SessionRequest {
+  id: string;
+  groupId: string;
+  title: string;
+  /** @nullable */
+  prayerPersonName?: string | null;
+  /** @nullable */
+  prayerPersonInitials?: string | null;
+  /** @nullable */
+  categoryId?: string | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  categoryColor?: string | null;
+  /** @nullable */
+  categoryIcon?: string | null;
+  urgency: SessionRequestUrgency;
+  status: SessionRequestStatus;
+  isAnonymous: boolean;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  latestUpdate?: string | null;
+  /** @nullable */
+  importantDate?: string | null;
+  commitmentCount: number;
+  iCommitted: boolean;
+  sessionItemId: string;
+  /** @nullable */
+  prayedAt?: string | null;
+  createdAt: string;
+}
+
+export type PrayerSessionDetailMode = typeof PrayerSessionDetailMode[keyof typeof PrayerSessionDetailMode];
+
+
+export const PrayerSessionDetailMode = {
+  compact: 'compact',
+  detailed: 'detailed',
+} as const;
+
+export type PrayerSessionDetailOrganizationType = typeof PrayerSessionDetailOrganizationType[keyof typeof PrayerSessionDetailOrganizationType];
+
+
+export const PrayerSessionDetailOrganizationType = {
+  priority: 'priority',
+  category: 'category',
+} as const;
+
+export interface PrayerSessionDetail {
+  id: string;
+  groupId: string;
+  mode: PrayerSessionDetailMode;
+  organizationType: PrayerSessionDetailOrganizationType;
+  /** @nullable */
+  filter?: string | null;
+  startedAt: string;
+  requests: SessionRequest[];
+}
+
+export interface SessionMarkInput {
+  requestId: string;
+}
+
+export interface SessionMarkResult {
+  sessionItemId: string;
+  requestId: string;
+  prayedAt: string;
+}
+
+export type SessionSummaryPrayedRequestsItem = {
+  id: string;
+  title: string;
+};
+
+export interface SessionSummary {
+  sessionId: string;
+  mode: string;
+  prayedCount: number;
+  totalCount: number;
+  durationSeconds: number;
+  categoriesCovered: string[];
+  prayedRequests: SessionSummaryPrayedRequestsItem[];
+  completedAt: string;
+}
+
 export type ListPrayerRequestsParams = {
 status?: string;
 categoryId?: string;

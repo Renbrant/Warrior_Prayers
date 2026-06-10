@@ -23,6 +23,7 @@ import CreatePrayerRequest from "@/pages/create-prayer-request";
 import PrayerRequestDetail from "@/pages/prayer-request-detail";
 import PrayerHistory from "@/pages/prayer-history";
 import GroupCategories from "@/pages/group-categories";
+import PrayerMode from "@/pages/prayer-mode";
 import { AppShell } from "@/components/layout/app-shell";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
@@ -175,13 +176,11 @@ function ProtectedAppShell() {
             <Route path="/app/groups/:groupId/history" component={PrayerHistory} />
             <Route path="/app/groups/:groupId/requests/new" component={CreatePrayerRequest} />
             <Route path="/app/groups/:groupId/requests/:requestId" component={PrayerRequestDetail} />
+            <Route path="/app/groups/:groupId/pray" component={PrayerMode} />
             <Route path="/app/groups/:groupId/requests" component={PrayerRequestList} />
             <Route path="/app/groups/:groupId" component={GroupDashboard} />
             <Route path="/app/groups">
               <Redirect to="/app/dashboard" />
-            </Route>
-            <Route path="/app/pray">
-              <div className="p-10 text-center text-muted-foreground mt-20">Prayer mode coming in Phase 4</div>
             </Route>
             <Route path="/app/notifications">
               <Redirect to="/app/invitations" />

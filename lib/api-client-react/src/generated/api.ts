@@ -45,7 +45,12 @@ import type {
   PrayerRequestInput,
   PrayerRequestPatch,
   PrayerRequestSummary,
+  PrayerSessionDetail,
+  PrayerSessionInput,
   PrayerUpdateInput,
+  SessionMarkInput,
+  SessionMarkResult,
+  SessionSummary,
   UserProfile,
   UserProfileUpdate
 } from './api.schemas';
@@ -2456,6 +2461,224 @@ export const useAddPrayerUpdate = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getAddPrayerUpdateMutationOptions(options));
+    }
+
+export const getStartPrayerSessionUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/sessions`
+}
+
+/**
+ * @summary Start a new Prayer Mode session
+ */
+export const startPrayerSession = async (groupId: string,
+    prayerSessionInput: PrayerSessionInput, options?: RequestInit): Promise<PrayerSessionDetail> => {
+
+  return customFetch<PrayerSessionDetail>(getStartPrayerSessionUrl(groupId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      prayerSessionInput,)
+  }
+);}
+
+
+
+
+export const getStartPrayerSessionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startPrayerSession>>, TError,{groupId: string;data: BodyType<PrayerSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startPrayerSession>>, TError,{groupId: string;data: BodyType<PrayerSessionInput>}, TContext> => {
+
+const mutationKey = ['startPrayerSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startPrayerSession>>, {groupId: string;data: BodyType<PrayerSessionInput>}> = (props) => {
+          const {groupId,data} = props ?? {};
+
+          return  startPrayerSession(groupId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartPrayerSessionMutationResult = NonNullable<Awaited<ReturnType<typeof startPrayerSession>>>
+    export type StartPrayerSessionMutationBody = BodyType<PrayerSessionInput>
+    export type StartPrayerSessionMutationError = ErrorType<void>
+
+    /**
+ * @summary Start a new Prayer Mode session
+ */
+export const useStartPrayerSession = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startPrayerSession>>, TError,{groupId: string;data: BodyType<PrayerSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startPrayerSession>>,
+        TError,
+        {groupId: string;data: BodyType<PrayerSessionInput>},
+        TContext
+      > => {
+      return useMutation(getStartPrayerSessionMutationOptions(options));
+    }
+
+export const getMarkPrayedUrl = (groupId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/sessions/${sessionId}/mark-prayed`
+}
+
+/**
+ * @summary Mark a request as prayed within a session
+ */
+export const markPrayed = async (groupId: string,
+    sessionId: string,
+    sessionMarkInput: SessionMarkInput, options?: RequestInit): Promise<SessionMarkResult> => {
+
+  return customFetch<SessionMarkResult>(getMarkPrayedUrl(groupId,sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sessionMarkInput,)
+  }
+);}
+
+
+
+
+export const getMarkPrayedMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPrayed>>, TError,{groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markPrayed>>, TError,{groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}, TContext> => {
+
+const mutationKey = ['markPrayed'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markPrayed>>, {groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}> = (props) => {
+          const {groupId,sessionId,data} = props ?? {};
+
+          return  markPrayed(groupId,sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkPrayedMutationResult = NonNullable<Awaited<ReturnType<typeof markPrayed>>>
+    export type MarkPrayedMutationBody = BodyType<SessionMarkInput>
+    export type MarkPrayedMutationError = ErrorType<void>
+
+    /**
+ * @summary Mark a request as prayed within a session
+ */
+export const useMarkPrayed = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPrayed>>, TError,{groupId: string;sessionId: string;data: BodyType<SessionMarkInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markPrayed>>,
+        TError,
+        {groupId: string;sessionId: string;data: BodyType<SessionMarkInput>},
+        TContext
+      > => {
+      return useMutation(getMarkPrayedMutationOptions(options));
+    }
+
+export const getCompletePrayerSessionUrl = (groupId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/sessions/${sessionId}/complete`
+}
+
+/**
+ * @summary Complete a Prayer Mode session and get summary
+ */
+export const completePrayerSession = async (groupId: string,
+    sessionId: string, options?: RequestInit): Promise<SessionSummary> => {
+
+  return customFetch<SessionSummary>(getCompletePrayerSessionUrl(groupId,sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCompletePrayerSessionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completePrayerSession>>, TError,{groupId: string;sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completePrayerSession>>, TError,{groupId: string;sessionId: string}, TContext> => {
+
+const mutationKey = ['completePrayerSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completePrayerSession>>, {groupId: string;sessionId: string}> = (props) => {
+          const {groupId,sessionId} = props ?? {};
+
+          return  completePrayerSession(groupId,sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompletePrayerSessionMutationResult = NonNullable<Awaited<ReturnType<typeof completePrayerSession>>>
+
+    export type CompletePrayerSessionMutationError = ErrorType<void>
+
+    /**
+ * @summary Complete a Prayer Mode session and get summary
+ */
+export const useCompletePrayerSession = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completePrayerSession>>, TError,{groupId: string;sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completePrayerSession>>,
+        TError,
+        {groupId: string;sessionId: string},
+        TContext
+      > => {
+      return useMutation(getCompletePrayerSessionMutationOptions(options));
     }
 
 export const getGetPrayerHistoryUrl = (groupId: string,

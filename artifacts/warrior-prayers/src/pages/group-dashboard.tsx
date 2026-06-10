@@ -3,7 +3,6 @@ import { useGetGroup, useListGroupMembers, getGetGroupQueryKey } from "@workspac
 import { Users, MapPin, Church, BookOpen, Settings, UserPlus, Plus, Flame, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
 
 function RoleBadge({ role }: { role: string }) {
   const colors: Record<string, string> = {
@@ -35,7 +34,6 @@ function MemberAvatar({ name, photoUrl }: { name: string | null; photoUrl: strin
 export default function GroupDashboard() {
   const { groupId } = useParams<{ groupId: string }>();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
 
   const { data: group, isLoading: isGroupLoading } = useGetGroup(groupId!, {
     query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId },
@@ -150,7 +148,7 @@ export default function GroupDashboard() {
           icon={Flame}
           title="Start Praying"
           description="Enter focused prayer mode"
-          onClick={() => toast({ title: "Coming in Phase 4", description: "Prayer mode is coming soon!" })}
+          onClick={() => setLocation(`/app/groups/${groupId}/pray`)}
           testId="btn-start-praying"
         />
       </div>

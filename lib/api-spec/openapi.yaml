@@ -22,6 +22,8 @@ tags:
     description: Prayer category operations
   - name: prayers
     description: Prayer request operations
+  - name: sessions
+    description: Prayer session (Prayer Mode) operations
 
 paths:
   /healthz:
@@ -907,6 +909,107 @@ paths:
         "404":
           description: Prayer request not found
 
+  /groups/{groupId}/sessions:
+    post:
+      operationId: startPrayerSession
+      tags: [sessions]
+      summary: Start a new Prayer Mode session
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrayerSessionInput"
+      responses:
+        "201":
+          description: Session started with filtered request list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerSessionDetail"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+
+  /groups/{groupId}/sessions/{sessionId}/mark-prayed:
+    post:
+      operationId: markPrayed
+      tags: [sessions]
+      summary: Mark a request as prayed within a session
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionMarkInput"
+      responses:
+        "200":
+          description: Item marked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionMarkResult"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+        "404":
+          description: Session or request not found
+
+  /groups/{groupId}/sessions/{sessionId}/complete:
+    post:
+      operationId: completePrayerSession
+      tags: [sessions]
+      summary: Complete a Prayer Mode session and get summary
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session completed with summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionSummary"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+        "404":
+          description: Session not found
+
   /groups/{groupId}/history:
     get:
       operationId: getPrayerHistory
@@ -1660,3 +1763,167 @@ components:
       required:
         - commitmentCount
         - iCommitted
+
+    PrayerSessionInput:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [compact, detailed]
+        organizationType:
+          type: string
+          enum: [priority, category]
+        filter:
+          type: string
+          enum: [all_active, urgent_only, important_urgent, already_praying, created_by_me]
+      required:
+        - mode
+
+    SessionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        title:
+          type: string
+        prayerPersonName:
+          type: ["string", "null"]
+        prayerPersonInitials:
+          type: ["string", "null"]
+        categoryId:
+          type: ["string", "null"]
+        categoryName:
+          type: ["string", "null"]
+        categoryColor:
+          type: ["string", "null"]
+        categoryIcon:
+          type: ["string", "null"]
+        urgency:
+          type: string
+          enum: [normal, important, urgent]
+        status:
+          type: string
+          enum: [active, follow_up, closed, archived]
+        isAnonymous:
+          type: boolean
+        description:
+          type: ["string", "null"]
+        latestUpdate:
+          type: ["string", "null"]
+        importantDate:
+          type: ["string", "null"]
+        commitmentCount:
+          type: integer
+        iCommitted:
+          type: boolean
+        sessionItemId:
+          type: string
+        prayedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - groupId
+        - title
+        - urgency
+        - status
+        - isAnonymous
+        - commitmentCount
+        - iCommitted
+        - sessionItemId
+        - createdAt
+
+    PrayerSessionDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        mode:
+          type: string
+          enum: [compact, detailed]
+        organizationType:
+          type: string
+          enum: [priority, category]
+        filter:
+          type: ["string", "null"]
+        startedAt:
+          type: string
+        requests:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionRequest"
+      required:
+        - id
+        - groupId
+        - mode
+        - organizationType
+        - startedAt
+        - requests
+
+    SessionMarkInput:
+      type: object
+      properties:
+        requestId:
+          type: string
+      required:
+        - requestId
+
+    SessionMarkResult:
+      type: object
+      properties:
+        sessionItemId:
+          type: string
+        requestId:
+          type: string
+        prayedAt:
+          type: string
+      required:
+        - sessionItemId
+        - requestId
+        - prayedAt
+
+    SessionSummary:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        mode:
+          type: string
+        prayedCount:
+          type: integer
+        totalCount:
+          type: integer
+        durationSeconds:
+          type: integer
+        categoriesCovered:
+          type: array
+          items:
+            type: string
+        prayedRequests:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+            required:
+              - id
+              - title
+        completedAt:
+          type: string
+      required:
+        - sessionId
+        - mode
+        - prayedCount
+        - totalCount
+        - durationSeconds
+        - categoriesCovered
+        - prayedRequests
+        - completedAt
