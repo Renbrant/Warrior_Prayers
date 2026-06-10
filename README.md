@@ -6,6 +6,16 @@ The app allows users to create secure invitation-only prayer groups, share praye
 
 ---
 
+## 🌐 Web Version
+
+The web version of **Warrior Prayers** is currently under development and can be accessed here:
+
+**https://warriorprayers.replit.app**
+
+> This is a development version and may change frequently as new features are added and improved.
+
+---
+
 ## ✨ Purpose
 
 Prayer requests often include deeply personal and sensitive information. Warrior Prayers was created to provide a safe and organized space where trusted people can intercede for one another without exposing private details publicly.
