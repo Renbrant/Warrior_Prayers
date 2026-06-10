@@ -23,7 +23,7 @@ export default function Landing() {
     <div className="min-h-[100dvh] flex flex-col bg-background selection:bg-primary/30">
       <header className="px-6 py-4 flex items-center justify-between border-b border-border/50">
         <div className="flex items-center gap-2">
-          <Shield className="w-8 h-8 text-primary" />
+          <img src="/logo.png" alt="Warrior Prayers" className="w-8 h-8 object-contain" />
           <span className="font-bold text-lg hidden sm:inline-block">{t("app.name")}</span>
         </div>
         <div className="flex items-center gap-4">
