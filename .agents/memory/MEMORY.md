@@ -1,0 +1,1 @@
+- [Warrior Prayers Architecture](warrior-prayers-arch.md) — auth/db/API/frontend key decisions; DB needs `typecheck:libs` run after schema changes
