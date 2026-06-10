@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
+import { useUser } from "@clerk/react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -25,6 +26,8 @@ export default function CompleteProfile() {
   const [, setLocation] = useLocation();
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
+
+  const { user: clerkUser } = useUser();
 
   const { data: user, isLoading, isError } = useGetMe({
     query: { queryKey: getGetMeQueryKey() }
@@ -48,8 +51,11 @@ export default function CompleteProfile() {
       if (user.isProfileComplete) {
         setLocation("/app/dashboard");
       } else {
+        const clerkFullName = clerkUser
+          ? [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ")
+          : "";
         form.reset({
-          fullName: user.fullName || "",
+          fullName: user.fullName || clerkFullName,
           preferredLanguage: (user.preferredLanguage as "en" | "pt" | "es") || "en",
           phone: user.phone || "",
           churchName: user.churchName || "",
@@ -57,7 +63,7 @@ export default function CompleteProfile() {
         });
       }
     }
-  }, [user, form, setLocation]);
+  }, [user, clerkUser, form, setLocation]);
 
   const onSubmit = (data: ProfileValues) => {
     i18n.changeLanguage(data.preferredLanguage);
