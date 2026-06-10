@@ -55,10 +55,12 @@ if (!clerkPubKey) {
 const clerkAppearance = {
   theme: shadcn,
   cssLayerName: "clerk",
-  options: {
+  layout: {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
     logoImageUrl: `${window.location.origin}${basePath}/logo.png`,
+    socialButtonsVariant: "blockButton" as const,
+    socialButtonsPlacement: "top" as const,
   },
   variables: {
     colorPrimary: "hsl(27 75% 52%)",
