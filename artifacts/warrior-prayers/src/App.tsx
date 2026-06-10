@@ -26,6 +26,7 @@ import GroupCategories from "@/pages/group-categories";
 import PrayerMode from "@/pages/prayer-mode";
 import Notifications from "@/pages/notifications";
 import Profile from "@/pages/profile";
+import PrayerHub from "@/pages/prayer-hub";
 import { AppShell } from "@/components/layout/app-shell";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
@@ -186,6 +187,7 @@ function ProtectedAppShell() {
             </Route>
             <Route path="/app/notifications" component={Notifications} />
             <Route path="/app/profile" component={Profile} />
+            <Route path="/app/pray" component={PrayerHub} />
             <Route component={NotFound} />
           </Switch>
         </AppShell>

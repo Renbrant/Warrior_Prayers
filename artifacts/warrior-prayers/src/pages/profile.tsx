@@ -32,6 +32,7 @@ import {
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
+  profilePhotoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   phone: z.string().optional(),
   churchName: z.string().optional(),
   city: z.string().optional(),
@@ -71,6 +72,7 @@ export default function Profile() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       fullName: "",
+      profilePhotoUrl: "",
       phone: "",
       churchName: "",
       city: "",
@@ -82,6 +84,7 @@ export default function Profile() {
     if (user) {
       form.reset({
         fullName: user.fullName ?? "",
+        profilePhotoUrl: user.profilePhotoUrl ?? "",
         phone: user.phone ?? "",
         churchName: user.churchName ?? "",
         city: user.city ?? "",
@@ -94,8 +97,17 @@ export default function Profile() {
     i18n.changeLanguage(data.preferredLanguage);
     localStorage.setItem("language", data.preferredLanguage);
 
+    const payload = {
+      fullName: data.fullName,
+      profilePhotoUrl: data.profilePhotoUrl || undefined,
+      phone: data.phone || undefined,
+      churchName: data.churchName || undefined,
+      city: data.city || undefined,
+      preferredLanguage: data.preferredLanguage,
+    };
+
     updateMe.mutate(
-      { data: data as Parameters<typeof updateMe.mutate>[0]["data"] },
+      { data: payload as Parameters<typeof updateMe.mutate>[0]["data"] },
       {
         onSuccess: (updated) => {
           queryClient.setQueryData(getGetMeQueryKey(), updated);
@@ -168,6 +180,26 @@ export default function Profile() {
                       placeholder="John Doe"
                       className="bg-background rounded-2xl h-12 px-4"
                       data-testid="input-fullname"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="profilePhotoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground/80 font-medium">Profile Photo URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="url"
+                      placeholder="https://example.com/photo.jpg (optional)"
+                      className="bg-background rounded-2xl h-12 px-4"
+                      data-testid="input-photo-url"
                     />
                   </FormControl>
                   <FormMessage />
@@ -273,9 +305,8 @@ export default function Profile() {
 
       <div className="bg-card border border-border rounded-3xl p-6">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Account</h2>
-        <div className="space-y-1 text-sm text-muted-foreground mb-6">
+        <div className="space-y-1 text-sm text-muted-foreground mb-4">
           <p><span className="text-foreground font-medium">Email:</span> {user?.email}</p>
-          <p><span className="text-foreground font-medium">Auth provider:</span> {user?.primaryAuthProvider}</p>
           <p>
             <span className="text-foreground font-medium">Email verified:</span>{" "}
             {user?.emailVerified ? "Yes" : "No"}
@@ -284,6 +315,24 @@ export default function Profile() {
             <span className="text-foreground font-medium">Member since:</span>{" "}
             {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
           </p>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Connected Accounts</p>
+          {user?.primaryAuthProvider ? (
+            <div className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-3">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold uppercase">
+                {user.primaryAuthProvider.slice(0, 2)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground capitalize">{user.primaryAuthProvider}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+              <span className="text-xs text-green-500 font-semibold">Connected</span>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No auth provider linked.</p>
+          )}
         </div>
 
         <AlertDialog>

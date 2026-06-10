@@ -83,6 +83,7 @@ export default function PrayerRequestDetail() {
   const [testimony, setTestimony] = useState("");
   const [closingNote, setClosingNote] = useState("");
   const [pendingArchive, setPendingArchive] = useState(false);
+  const [pendingClose, setPendingClose] = useState(false);
 
   const { data: group } = useGetGroup(groupId!, { query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId } });
   const { data: request, isLoading } = useGetPrayerRequest(groupId!, requestId!, {
@@ -186,6 +187,10 @@ export default function PrayerRequestDetail() {
     if (!updateText.trim()) return;
     if (newStatus === "archived") {
       setPendingArchive(true);
+      return;
+    }
+    if (newStatus === "closed") {
+      setPendingClose(true);
       return;
     }
     executeAddUpdate();
@@ -557,6 +562,29 @@ export default function PrayerRequestDetail() {
           )}
         </section>
       )}
+
+      <AlertDialog open={pendingClose} onOpenChange={(open) => { if (!open) setPendingClose(false); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close Prayer Request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {closureReason === "answered_prayer"
+                ? "This request will be marked as Answered Prayer and closed. Group members who are praying for it will be notified."
+                : "This request will be closed and removed from the active list. This cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setPendingClose(false); executeAddUpdate(); }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              data-testid="btn-confirm-close"
+            >
+              {closureReason === "answered_prayer" ? "Mark as Answered" : "Close Request"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={pendingArchive} onOpenChange={(open) => { if (!open) setPendingArchive(false); }}>
         <AlertDialogContent>
