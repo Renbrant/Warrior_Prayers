@@ -118,8 +118,11 @@ export default function Groups() {
               className="bg-card border border-border rounded-3xl p-6 text-left hover:border-primary/50 hover:shadow-md transition-all group w-full"
             >
               <div className="flex items-start justify-between gap-4 mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <Users className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden group-hover:bg-primary/20 transition-colors">
+                  {group.imageUrl
+                    ? <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover" />
+                    : <Users className="w-5 h-5 text-primary" />
+                  }
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors mt-1" />
               </div>

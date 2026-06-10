@@ -63,8 +63,11 @@ export default function PrayerHub() {
                 data-testid={`btn-pray-${group.id}`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Heart className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                    {group.imageUrl
+                      ? <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover" />
+                      : <Heart className="w-5 h-5 text-primary" />
+                    }
                   </div>
                   <div>
                     <p className="font-bold text-foreground">{group.name}</p>
