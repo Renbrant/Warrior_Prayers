@@ -8,6 +8,7 @@ import categoriesRouter from "./categories";
 import prayerSessionsRouter from "./prayerSessions";
 import notificationsRouter from "./notifications";
 import translationsRouter from "./translations";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(categoriesRouter);
 router.use(prayerSessionsRouter);
 router.use(notificationsRouter);
 router.use(translationsRouter);
+router.use(storageRouter);
 
 export default router;

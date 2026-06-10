@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -7,7 +7,8 @@ import {
   getGetGroupQueryKey,
   getListMyGroupsQueryKey,
 } from "@workspace/api-client-react";
-import { ArrowLeft, Settings } from "lucide-react";
+import { ArrowLeft, Settings, Camera, Loader2 } from "lucide-react";
+import { useUpload } from "@workspace/object-storage-web";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,6 +59,16 @@ export default function GroupSettings() {
   });
 
   const updateGroup = useUpdateGroup();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const { uploadFile, isUploading: isUploadingPhoto } = useUpload({
+    onSuccess: (res) => {
+      setImageUrl(`/api/storage${res.objectPath}`);
+    },
+    onError: () => {
+      toast({ title: t("common.error"), variant: "destructive" });
+    },
+  });
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -215,15 +226,40 @@ export default function GroupSettings() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">{t("group.form.imageUrl")}</Label>
-            <Input
-              id="imageUrl"
-              data-testid="input-image-url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder={t("group.form.imageUrlPlaceholder")}
-              className="rounded-xl h-12"
-            />
+            <Label>{t("group.form.groupPhoto")}</Label>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+                {imageUrl ? (
+                  <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-6 h-6 text-primary/60" />
+                )}
+              </div>
+              <div className="flex-1">
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={isUploadingPhoto}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-background hover:bg-muted transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  {isUploadingPhoto
+                    ? <><Loader2 className="w-4 h-4 animate-spin" />{t("group.form.uploading")}</>
+                    : <><Camera className="w-4 h-4" />{t("group.form.uploadPhoto")}</>
+                  }
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void uploadFile(file);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </section>
 

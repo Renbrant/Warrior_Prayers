@@ -1,3 +1,4 @@
 - [Warrior Prayers Architecture](warrior-prayers-arch.md) — auth/db/API/frontend key decisions; DB needs `typecheck:libs` run after schema changes
 - [Orval schema naming collision](orval-schema-collision.md) — Orval auto-names Zod consts `{operationId}Body`; OpenAPI schemas must not share those names.
 - [Drizzle params typing](drizzle-params-typing.md) — Express `req.params` is `string | string[]`; always use `String(req.params.x)` before passing to Drizzle `eq()`.
+- [Object Storage Setup](object-storage-setup.md) — composite tsconfig quirk, pnpm overrides for Uppy v5, serving URL pattern; bucket already provisioned.

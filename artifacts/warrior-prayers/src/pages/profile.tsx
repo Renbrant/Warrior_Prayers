@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,8 @@ import {
   getGetMeQueryKey,
 } from "@workspace/api-client-react";
 import { useClerk } from "@clerk/react";
-import { ArrowLeft, LogOut, User, Sun, Moon } from "lucide-react";
+import { ArrowLeft, LogOut, User, Sun, Moon, Camera, Loader2 } from "lucide-react";
+import { useUpload } from "@workspace/object-storage-web";
 import { useTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,11 +56,35 @@ export default function Profile() {
     },
   );
 
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
   const { data: user, isLoading } = useGetMe({
     query: { queryKey: getGetMeQueryKey() },
   });
 
   const updateMe = useUpdateMe();
+
+  const { uploadFile, isUploading: isUploadingPhoto } = useUpload({
+    onSuccess: (res) => {
+      const photoUrl = `/api/storage${res.objectPath}`;
+      form.setValue("profilePhotoUrl", photoUrl);
+      updateMe.mutate(
+        { data: { profilePhotoUrl: photoUrl } as Parameters<typeof updateMe.mutate>[0]["data"] },
+        {
+          onSuccess: (updated) => {
+            queryClient.setQueryData(getGetMeQueryKey(), updated);
+            toast({ title: t("profile.saved") });
+          },
+          onError: () => {
+            toast({ title: t("common.error"), variant: "destructive" });
+          },
+        },
+      );
+    },
+    onError: () => {
+      toast({ title: t("common.error"), variant: "destructive" });
+    },
+  });
 
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
@@ -151,7 +176,13 @@ export default function Profile() {
       </header>
 
       <div className="flex flex-col items-center gap-3">
-        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+        <button
+          type="button"
+          onClick={() => photoInputRef.current?.click()}
+          disabled={isUploadingPhoto}
+          className="relative w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label={t("profile.uploadPhoto")}
+        >
           {user?.profilePhotoUrl ? (
             <img src={user.profilePhotoUrl} alt={user?.fullName ?? ""} className="w-full h-full object-cover" />
           ) : (
@@ -159,9 +190,32 @@ export default function Profile() {
               {(user?.fullName ?? "?").slice(0, 2).toUpperCase()}
             </span>
           )}
-        </div>
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+            {isUploadingPhoto
+              ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+              : <Camera className="w-5 h-5 text-white" />
+            }
+          </div>
+          {isUploadingPhoto && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
+            </div>
+          )}
+        </button>
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void uploadFile(file);
+            e.target.value = "";
+          }}
+        />
         <div className="text-center">
           <p className="font-bold text-foreground text-lg">{user?.fullName ?? "—"}</p>
+          <p className="text-xs text-muted-foreground">{isUploadingPhoto ? t("profile.uploading") : t("profile.uploadPhoto")}</p>
         </div>
       </div>
 
@@ -187,25 +241,6 @@ export default function Profile() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="profilePhotoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">{t("profile.photoUrl")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="url"
-                      placeholder={t("profile.photoUrlPlaceholder")}
-                      className="bg-background rounded-2xl h-12 px-4"
-                      data-testid="input-photo-url"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/80">{t("profile.language")}</label>
