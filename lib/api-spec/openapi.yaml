@@ -1416,6 +1416,8 @@ components:
           type: integer
         myCommittedRequestCount:
           type: integer
+        myPrayedCount:
+          type: integer
         pendingInvitationCount:
           type: integer
       required:
@@ -1424,6 +1426,7 @@ components:
         - closedRequestCount
         - answeredPrayerCount
         - myCommittedRequestCount
+        - myPrayedCount
         - pendingInvitationCount
 
     GroupSummary:

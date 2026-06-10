@@ -222,9 +222,9 @@ export default function PrayerRequestList() {
                   )}
                   <div className="flex items-center gap-3 text-xs text-muted-foreground pt-0.5">
                     <span>
-                      {req.commitmentCount === 1
+                      {req.prayedCount === 1
                         ? t("requests.praying_one", { count: 1 })
-                        : t("requests.praying_other", { count: req.commitmentCount })}
+                        : t("requests.praying_other", { count: req.prayedCount })}
                     </span>
                     {req.isAnonymous && (
                       <span className="italic">{t("requests.anonymous")}</span>

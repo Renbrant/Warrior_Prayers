@@ -107,6 +107,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "closedRequestCount": zod.number(),
   "answeredPrayerCount": zod.number(),
   "myCommittedRequestCount": zod.number(),
+  "myPrayedCount": zod.number(),
   "pendingInvitationCount": zod.number()
 })
 

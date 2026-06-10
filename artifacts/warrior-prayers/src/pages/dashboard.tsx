@@ -95,7 +95,7 @@ export default function Dashboard() {
     { label: t("dashboard.stat.activeRequests"), value: summary.activeRequestCount, icon: AlertCircle },
     { label: t("dashboard.stat.closedRequests"), value: summary.closedRequestCount, icon: CheckCircle2 },
     { label: t("dashboard.stat.answeredPrayers"), value: summary.answeredPrayerCount, icon: Inbox },
-    { label: t("dashboard.stat.prayingFor"), value: summary.myCommittedRequestCount, icon: Heart },
+    { label: t("dashboard.stat.prayingFor"), value: summary.myPrayedCount, icon: Heart },
   ];
 
   const hasGroups = (groups?.length ?? 0) > 0;

@@ -102,6 +102,7 @@ export interface DashboardSummary {
   closedRequestCount: number;
   answeredPrayerCount: number;
   myCommittedRequestCount: number;
+  myPrayedCount: number;
   pendingInvitationCount: number;
 }
 

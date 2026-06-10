@@ -5,6 +5,7 @@ import {
   groupMembersTable,
   prayerRequestsTable,
   prayerCommitmentsTable,
+  prayerLogsTable,
   groupInvitesTable,
 } from "@workspace/db";
 import { eq, and, count, inArray } from "drizzle-orm";
@@ -194,6 +195,7 @@ router.get(
           closedRequestCount: 0,
           answeredPrayerCount: 0,
           myCommittedRequestCount: 0,
+          myPrayedCount: 0,
           pendingInvitationCount: 0,
         });
         return;
@@ -259,6 +261,12 @@ router.get(
 
       const myCommittedRequestCount = Number(committedResult[0]?.count ?? 0);
 
+      const myPrayedResult = await db
+        .select({ count: count() })
+        .from(prayerLogsTable)
+        .where(eq(prayerLogsTable.userId, dbUserId));
+      const myPrayedCount = Number(myPrayedResult[0]?.count ?? 0);
+
       const currentUserEmail = req.dbUserEmail;
       const pendingInvitationsResult = currentUserEmail
         ? await db
@@ -280,6 +288,7 @@ router.get(
         closedRequestCount,
         answeredPrayerCount,
         myCommittedRequestCount,
+        myPrayedCount,
         pendingInvitationCount,
       });
     } catch (err) {
