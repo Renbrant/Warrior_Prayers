@@ -12,6 +12,7 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import CompleteProfile from "@/pages/complete-profile";
 import { AppShell } from "@/components/layout/app-shell";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 import "@/lib/i18n";
 
@@ -82,19 +83,32 @@ const clerkAppearance = {
   },
 };
 
+function AuthPageShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-[100dvh] flex-col bg-background">
+      <div className="flex justify-end px-6 py-4">
+        <LanguageSwitcher />
+      </div>
+      <div className="flex flex-1 items-center justify-center px-4 pb-12">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-12">
+    <AuthPageShell>
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
-    </div>
+    </AuthPageShell>
   );
 }
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-12">
+    <AuthPageShell>
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
-    </div>
+    </AuthPageShell>
   );
 }
 

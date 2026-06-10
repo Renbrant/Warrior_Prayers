@@ -2,11 +2,12 @@ import { getAuth } from "@clerk/express";
 import type { Request, Response, NextFunction } from "express";
 import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
   dbUserId?: string;
+  dbUserEmail?: string;
 }
 
 export const requireAuth = async (
@@ -24,18 +25,15 @@ export const requireAuth = async (
 
   req.userId = clerkUserId;
 
-  try {
-    const user = await db
-      .select({ id: usersTable.id })
-      .from(usersTable)
-      .where(eq(usersTable.clerkId, clerkUserId))
-      .limit(1);
+  const user = await db
+    .select({ id: usersTable.id, email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.clerkId, clerkUserId))
+    .limit(1);
 
-    if (user[0]) {
-      req.dbUserId = user[0].id;
-    }
-  } catch (err) {
-    req.log?.error({ err }, "Failed to fetch dbUserId in requireAuth");
+  if (user[0]) {
+    req.dbUserId = user[0].id;
+    req.dbUserEmail = user[0].email;
   }
 
   next();
@@ -54,55 +52,71 @@ export const syncUserFromClerk = async (
     return;
   }
 
-  try {
-    const existing = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.clerkId, clerkUserId))
-      .limit(1);
+  const sessionClaims = auth?.sessionClaims as Record<string, unknown> | undefined;
+  const email =
+    (sessionClaims?.email as string) ||
+    (sessionClaims?.primaryEmailAddress as string) ||
+    `${clerkUserId}@unknown.local`;
+  const fullName =
+    (sessionClaims?.fullName as string) ||
+    (sessionClaims?.name as string) ||
+    null;
+  const emailVerified = (sessionClaims?.email_verified as boolean) || false;
+  const authProvider =
+    (sessionClaims?.primaryAuthProvider as string) || "email";
 
-    if (existing.length === 0) {
-      const sessionClaims = auth?.sessionClaims as Record<string, unknown> | undefined;
-      const email =
-        (sessionClaims?.email as string) ||
-        (sessionClaims?.primaryEmailAddress as string) ||
-        `${clerkUserId}@unknown.local`;
-      const fullName =
-        (sessionClaims?.fullName as string) ||
-        (sessionClaims?.name as string) ||
-        null;
-      const emailVerified =
-        (sessionClaims?.email_verified as boolean) || false;
-      const authProvider =
-        (sessionClaims?.primaryAuthProvider as string) || "email";
+  // Upsert: look up by clerkId OR email so we attach the clerkId to an
+  // existing email row rather than inserting a duplicate and hitting
+  // the unique constraint on email.
+  const existing = await db
+    .select({ id: usersTable.id, clerkId: usersTable.clerkId })
+    .from(usersTable)
+    .where(or(eq(usersTable.clerkId, clerkUserId), eq(usersTable.email, email)))
+    .limit(1);
 
-      const [newUser] = await db
-        .insert(usersTable)
-        .values({
-          clerkId: clerkUserId,
-          email,
-          fullName,
-          emailVerified,
-          primaryAuthProvider: authProvider,
-          preferredLanguage: "en",
-          lastLoginAt: new Date(),
-        })
-        .returning({ id: usersTable.id });
+  if (existing.length === 0) {
+    const [newUser] = await db
+      .insert(usersTable)
+      .values({
+        clerkId: clerkUserId,
+        email,
+        fullName,
+        emailVerified,
+        primaryAuthProvider: authProvider,
+        preferredLanguage: "en",
+        lastLoginAt: new Date(),
+      })
+      .returning({ id: usersTable.id });
 
-      req.dbUserId = newUser?.id;
-    } else {
-      await db
-        .update(usersTable)
-        .set({ lastLoginAt: new Date(), updatedAt: new Date() })
-        .where(eq(usersTable.clerkId, clerkUserId));
-
-      req.dbUserId = existing[0].id;
+    if (!newUser) {
+      req.log?.error("Failed to insert new user during Clerk sync");
+      res.status(500).json({ error: "Failed to create user" });
+      return;
     }
 
-    req.userId = clerkUserId;
-  } catch (err) {
-    req.log?.error({ err }, "Failed to sync user from Clerk");
+    req.dbUserId = newUser.id;
+    req.dbUserEmail = email;
+  } else {
+    const existingRow = existing[0];
+
+    // If found by email but clerkId is different/missing, attach the new clerkId.
+    const updateFields: Record<string, unknown> = {
+      lastLoginAt: new Date(),
+      updatedAt: new Date(),
+    };
+    if (existingRow.clerkId !== clerkUserId) {
+      updateFields.clerkId = clerkUserId;
+    }
+
+    await db
+      .update(usersTable)
+      .set(updateFields)
+      .where(eq(usersTable.id, existingRow.id));
+
+    req.dbUserId = existingRow.id;
+    req.dbUserEmail = email;
   }
 
+  req.userId = clerkUserId;
   next();
 };

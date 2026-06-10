@@ -259,14 +259,18 @@ router.get(
 
       const myCommittedRequestCount = Number(committedResult[0]?.count ?? 0);
 
-      const pendingInvitationsResult = await db
-        .select({ count: count() })
-        .from(groupInvitesTable)
-        .where(
-          and(
-            eq(groupInvitesTable.status, "pending"),
-          ),
-        );
+      const currentUserEmail = req.dbUserEmail;
+      const pendingInvitationsResult = currentUserEmail
+        ? await db
+            .select({ count: count() })
+            .from(groupInvitesTable)
+            .where(
+              and(
+                eq(groupInvitesTable.status, "pending"),
+                eq(groupInvitesTable.invitedEmail, currentUserEmail),
+              ),
+            )
+        : [{ count: 0 }];
 
       const pendingInvitationCount = Number(pendingInvitationsResult[0]?.count ?? 0);
 
