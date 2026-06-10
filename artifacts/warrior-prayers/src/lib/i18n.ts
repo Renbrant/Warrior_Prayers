@@ -34,6 +34,8 @@ const en = {
   "nav.myGroups": "My Groups",
   "nav.supportProject": "Support the project",
   "nav.profileSettings": "Profile & Settings",
+  "nav.lightMode": "Light Mode",
+  "nav.darkMode": "Dark Mode",
 
   // Common
   "common.tryAgain": "Try Again",
@@ -509,6 +511,8 @@ const pt: typeof en = {
   "nav.myGroups": "Meus Grupos",
   "nav.supportProject": "Apoiar o projeto",
   "nav.profileSettings": "Perfil & Configurações",
+  "nav.lightMode": "Modo Claro",
+  "nav.darkMode": "Modo Escuro",
 
   "common.tryAgain": "Tentar novamente",
   "common.cancel": "Cancelar",
@@ -965,6 +969,8 @@ const es: typeof en = {
   "nav.myGroups": "Mis Grupos",
   "nav.supportProject": "Apoyar el proyecto",
   "nav.profileSettings": "Perfil & Configuración",
+  "nav.lightMode": "Modo Claro",
+  "nav.darkMode": "Modo Oscuro",
 
   "common.tryAgain": "Intentar de nuevo",
   "common.cancel": "Cancelar",

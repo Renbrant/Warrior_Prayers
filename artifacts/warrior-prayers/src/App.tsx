@@ -30,6 +30,7 @@ import PrayerHub from "@/pages/prayer-hub";
 import Groups from "@/pages/groups";
 import { AppShell } from "@/components/layout/app-shell";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ThemeProvider } from "@/lib/theme";
 
 import "@/lib/i18n";
 
@@ -236,12 +237,14 @@ function ClerkProviderWithRoutes() {
 
 function App() {
   return (
-    <TooltipProvider>
-      <WouterRouter base={basePath}>
-        <ClerkProviderWithRoutes />
-      </WouterRouter>
-      <Toaster />
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <WouterRouter base={basePath}>
+          <ClerkProviderWithRoutes />
+        </WouterRouter>
+        <Toaster />
+      </TooltipProvider>
+    </ThemeProvider>
   );
 }
 
