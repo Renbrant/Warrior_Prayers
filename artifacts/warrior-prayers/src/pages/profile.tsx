@@ -162,9 +162,6 @@ export default function Profile() {
         </div>
         <div className="text-center">
           <p className="font-bold text-foreground text-lg">{user?.fullName ?? "—"}</p>
-          {user?.email && !user.email.includes("@unknown.local") && (
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-          )}
         </div>
       </div>
 
@@ -324,14 +321,13 @@ export default function Profile() {
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             {t("profile.connectedAccounts")}
           </p>
-          {user?.email && !user.email.includes("@unknown.local") ? (
+          {user?.primaryAuthProvider ? (
             <div className="flex items-center gap-3 text-sm">
               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
                 <User className="w-4 h-4 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-foreground font-medium truncate">{user.email}</p>
-                <p className="text-xs text-muted-foreground capitalize">{user.primaryAuthProvider ?? "email"}</p>
+                <p className="text-foreground font-medium capitalize">{user.primaryAuthProvider}</p>
               </div>
               <span className="text-xs font-medium text-green-400">{t("common.connected")}</span>
             </div>

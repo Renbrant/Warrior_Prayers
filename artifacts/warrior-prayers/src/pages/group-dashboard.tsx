@@ -243,8 +243,7 @@ export default function GroupDashboard() {
               <li key={m.id} className="flex items-center gap-3 py-1.5">
                 <MemberAvatar name={m.fullName ?? null} photoUrl={m.profilePhotoUrl ?? null} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{m.fullName ?? m.email}</p>
-                  <p className="text-xs text-muted-foreground truncate">{m.email}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{m.fullName ?? "—"}</p>
                 </div>
                 <RoleBadge role={m.role} />
               </li>

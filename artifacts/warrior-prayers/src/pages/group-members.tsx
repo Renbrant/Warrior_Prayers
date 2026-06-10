@@ -163,10 +163,9 @@ export default function GroupMembers() {
                   <MemberAvatar name={m.fullName ?? null} photoUrl={m.profilePhotoUrl ?? null} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">
-                      {m.fullName ?? m.email}
+                      {m.fullName ?? "—"}
                       {isSelf && <span className="text-muted-foreground font-normal ml-1">{t("members.you")}</span>}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">{m.email}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {t("members.joined", { date: new Date(m.joinedAt).toLocaleDateString() })}
                     </p>
