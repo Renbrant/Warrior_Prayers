@@ -241,10 +241,19 @@ router.get(
         return;
       }
 
+      const isAdmin = memberRole === "admin";
+      const isMod = memberRole === "admin" || memberRole === "moderator";
+
       const conditions = [eq(prayerRequestsTable.groupId, groupId)];
       if (status) {
+        // Only admins can explicitly query archived requests
+        if (status === "archived" && !isAdmin) {
+          res.status(403).json({ error: "Only admins can view archived requests" });
+          return;
+        }
         conditions.push(eq(prayerRequestsTable.status, status));
       } else {
+        // Default: exclude closed/archived from regular member view
         conditions.push(inArray(prayerRequestsTable.status, ["active", "follow_up"]));
       }
       if (categoryId) conditions.push(eq(prayerRequestsTable.categoryId, categoryId));
@@ -530,8 +539,21 @@ router.post(
   requireGroupMember,
   async (req: GroupAuthRequest, res) => {
     try {
+      const groupId = req.groupId!;
       const requestId = String(req.params.requestId);
       const userId = req.dbUserId!;
+
+      // Verify request belongs to this group before toggling commitment
+      const [prayerReq] = await db
+        .select({ id: prayerRequestsTable.id })
+        .from(prayerRequestsTable)
+        .where(and(eq(prayerRequestsTable.id, requestId), eq(prayerRequestsTable.groupId, groupId)))
+        .limit(1);
+
+      if (!prayerReq) {
+        res.status(404).json({ error: "Prayer request not found" });
+        return;
+      }
 
       const [existing] = await db
         .select({ id: prayerCommitmentsTable.id })
@@ -568,8 +590,21 @@ router.get(
   requireGroupMember,
   async (req: GroupAuthRequest, res) => {
     try {
+      const groupId = req.groupId!;
       const requestId = String(req.params.requestId);
       const userId = req.dbUserId!;
+
+      // Verify request belongs to this group before returning comments
+      const [prayerReq] = await db
+        .select({ id: prayerRequestsTable.id })
+        .from(prayerRequestsTable)
+        .where(and(eq(prayerRequestsTable.id, requestId), eq(prayerRequestsTable.groupId, groupId)))
+        .limit(1);
+
+      if (!prayerReq) {
+        res.status(404).json({ error: "Prayer request not found" });
+        return;
+      }
 
       const rows = await db
         .select({
@@ -681,14 +716,25 @@ router.delete(
   requireGroupMember,
   async (req: GroupAuthRequest, res) => {
     try {
+      const groupId = req.groupId!;
+      const requestId = String(req.params.requestId);
       const commentId = String(req.params.commentId);
       const userId = req.dbUserId!;
       const memberRole = req.memberRole!;
 
+      // Verify comment belongs to the correct request AND group (prevent cross-group deletion)
       const [comment] = await db
         .select({ id: prayerCommentsTable.id, userId: prayerCommentsTable.userId })
         .from(prayerCommentsTable)
-        .where(and(eq(prayerCommentsTable.id, commentId), isNull(prayerCommentsTable.deletedAt)))
+        .innerJoin(prayerRequestsTable, eq(prayerCommentsTable.prayerRequestId, prayerRequestsTable.id))
+        .where(
+          and(
+            eq(prayerCommentsTable.id, commentId),
+            eq(prayerCommentsTable.prayerRequestId, requestId),
+            eq(prayerRequestsTable.groupId, groupId),
+            isNull(prayerCommentsTable.deletedAt),
+          ),
+        )
         .limit(1);
 
       if (!comment) {
@@ -770,12 +816,29 @@ router.post(
         updatedAt: new Date(),
       };
 
+      const isAdminForUpdate = memberRole === "admin";
+
       if (body.newStatus && body.newStatus !== row.status) {
+        // Archiving is admin-only
+        if (body.newStatus === "archived" && !isAdminForUpdate) {
+          res.status(403).json({ error: "Only admins can archive prayer requests" });
+          return;
+        }
+
+        // Closing requires a valid closure reason
+        if (body.newStatus === "closed") {
+          const validReasons = ["answered_prayer", "no_longer_needed"];
+          if (!body.closureReason || !validReasons.includes(body.closureReason)) {
+            res.status(400).json({ error: "A valid closure reason is required when closing a request (answered_prayer or no_longer_needed)" });
+            return;
+          }
+        }
+
         requestUpdates.status = body.newStatus;
 
         if (body.newStatus === "closed") {
           requestUpdates.closedAt = new Date();
-          requestUpdates.closureReason = body.closureReason ?? null;
+          requestUpdates.closureReason = body.closureReason!;
           if (body.closureReason === "answered_prayer" && body.testimony) {
             requestUpdates.answeredTestimonyEncrypted = encryptOrNull(body.testimony);
           }
