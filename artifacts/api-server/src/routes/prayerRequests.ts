@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import {
   prayerRequestsTable,
   prayerCommitmentsTable,
+  prayerLogsTable,
   prayerCommentsTable,
   prayerUpdatesTable,
   prayerCategoriesTable,
@@ -65,6 +66,8 @@ async function buildRequestSummary(
   requesterId: string,
   commitmentCount: number,
   iCommitted: boolean,
+  prayedCount: number,
+  iPrayed: boolean,
   category: { name: string; color: string | null; icon: string | null } | null,
 ) {
   const prayerPersonName = decryptOrNull(req_row.prayerPersonNameEncrypted);
@@ -95,6 +98,8 @@ async function buildRequestSummary(
     authorName: author.authorName,
     commitmentCount,
     iCommitted,
+    prayedCount,
+    iPrayed,
     createdAt: req_row.createdAt,
     updatedAt: req_row.updatedAt,
     closedAt: req_row.closedAt,
@@ -108,6 +113,8 @@ async function buildRequestDetail(
   requesterId: string,
   commitmentCount: number,
   iCommitted: boolean,
+  prayedCount: number,
+  iPrayed: boolean,
   category: { name: string; color: string | null; icon: string | null } | null,
   updates: { id: string; updateText: string; authorName: string | null; createdAt: Date }[],
 ) {
@@ -146,12 +153,34 @@ async function buildRequestDetail(
     isMyRequest: req_row.createdByUserId === requesterId,
     commitmentCount,
     iCommitted,
+    prayedCount,
+    iPrayed,
     updates,
     createdAt: req_row.createdAt,
     updatedAt: req_row.updatedAt,
     closedAt: req_row.closedAt,
     archivedAt: req_row.archivedAt,
   };
+}
+
+async function getPrayedInfo(requestId: string, userId: string) {
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(prayerLogsTable)
+    .where(eq(prayerLogsTable.prayerRequestId, requestId));
+
+  const [myLog] = await db
+    .select({ id: prayerLogsTable.id })
+    .from(prayerLogsTable)
+    .where(
+      and(
+        eq(prayerLogsTable.prayerRequestId, requestId),
+        eq(prayerLogsTable.userId, userId),
+      ),
+    )
+    .limit(1);
+
+  return { prayedCount: Number(total), iPrayed: !!myLog };
 }
 
 async function getCommitmentInfo(requestId: string, userId: string) {
@@ -271,8 +300,9 @@ router.get(
       const results = await Promise.all(
         rows.map(async (row) => {
           const { commitmentCount, iCommitted } = await getCommitmentInfo(row.id, userId);
+          const { prayedCount, iPrayed } = await getPrayedInfo(row.id, userId);
           const category = await getCategory(row.categoryId);
-          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, category);
+          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category);
         }),
       );
 
@@ -380,8 +410,9 @@ router.post(
       }
 
       const { commitmentCount, iCommitted } = await getCommitmentInfo(created.id, userId);
+      const { prayedCount, iPrayed } = await getPrayedInfo(created.id, userId);
       const category = await getCategory(created.categoryId);
-      const detail = await buildRequestDetail(created, group, memberRole, userId, commitmentCount, iCommitted, category, []);
+      const detail = await buildRequestDetail(created, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category, []);
 
       res.status(201).json(detail);
     } catch (err) {
@@ -423,9 +454,10 @@ router.get(
       }
 
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);
+      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
       const category = await getCategory(row.categoryId);
       const updates = await getRecentUpdates(requestId);
-      const detail = await buildRequestDetail(row, group, memberRole, userId, commitmentCount, iCommitted, category, updates);
+      const detail = await buildRequestDetail(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category, updates);
 
       res.json(detail);
     } catch (err) {
@@ -511,6 +543,7 @@ router.patch(
         .where(eq(prayerRequestsTable.id, requestId))
         .returning();
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);
+      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
       const category = await getCategory(updated.categoryId);
       const recentUpdates = await getRecentUpdates(requestId);
       const detail = await buildRequestDetail(
@@ -520,6 +553,8 @@ router.patch(
         userId,
         commitmentCount,
         iCommitted,
+        prayedCount,
+        iPrayed,
         category,
         recentUpdates,
       );
@@ -568,6 +603,7 @@ router.delete(
         await tx.delete(prayerCommitmentsTable).where(eq(prayerCommitmentsTable.prayerRequestId, requestId));
         await tx.delete(prayerCommentsTable).where(eq(prayerCommentsTable.prayerRequestId, requestId));
         await tx.delete(prayerUpdatesTable).where(eq(prayerUpdatesTable.prayerRequestId, requestId));
+        await tx.delete(prayerLogsTable).where(eq(prayerLogsTable.prayerRequestId, requestId));
         await tx.delete(prayerRequestsTable).where(eq(prayerRequestsTable.id, requestId));
       });
 
@@ -625,6 +661,54 @@ router.post(
       res.json({ commitmentCount, iCommitted });
     } catch (err) {
       req.log.error({ err }, "Failed to toggle commitment");
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+// ─── POST /groups/:groupId/requests/:requestId/prayed ────────────────────────
+
+router.post(
+  "/groups/:groupId/requests/:requestId/prayed",
+  syncUserFromClerk,
+  requireAuth,
+  requireGroupMember,
+  async (req: GroupAuthRequest, res) => {
+    try {
+      const groupId = req.groupId!;
+      const requestId = String(req.params.requestId);
+      const userId = req.dbUserId!;
+
+      const [prayerReq] = await db
+        .select({ id: prayerRequestsTable.id })
+        .from(prayerRequestsTable)
+        .where(and(eq(prayerRequestsTable.id, requestId), eq(prayerRequestsTable.groupId, groupId)))
+        .limit(1);
+
+      if (!prayerReq) {
+        res.status(404).json({ error: "Prayer request not found" });
+        return;
+      }
+
+      const [existing] = await db
+        .select({ id: prayerLogsTable.id })
+        .from(prayerLogsTable)
+        .where(
+          and(
+            eq(prayerLogsTable.prayerRequestId, requestId),
+            eq(prayerLogsTable.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      if (!existing) {
+        await db.insert(prayerLogsTable).values({ prayerRequestId: requestId, userId });
+      }
+
+      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
+      res.json({ prayedCount, iPrayed });
+    } catch (err) {
+      req.log.error({ err }, "Failed to record prayer");
       res.status(500).json({ error: "Internal server error" });
     }
   },
@@ -987,6 +1071,7 @@ router.post(
 
       const group = await getGroupSettings(groupId);
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);
+      const { prayedCount, iPrayed } = await getPrayedInfo(requestId, userId);
       const category = await getCategory(updated.categoryId);
       const recentUpdates = await getRecentUpdates(requestId);
       const detail = await buildRequestDetail(
@@ -996,6 +1081,8 @@ router.post(
         userId,
         commitmentCount,
         iCommitted,
+        prayedCount,
+        iPrayed,
         category,
         recentUpdates,
       );
@@ -1043,8 +1130,9 @@ router.get(
       const results = await Promise.all(
         rows.map(async (row) => {
           const { commitmentCount, iCommitted } = await getCommitmentInfo(row.id, userId);
+          const { prayedCount, iPrayed } = await getPrayedInfo(row.id, userId);
           const category = await getCategory(row.categoryId);
-          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, category);
+          return buildRequestSummary(row, group, memberRole, userId, commitmentCount, iCommitted, prayedCount, iPrayed, category);
         }),
       );
 

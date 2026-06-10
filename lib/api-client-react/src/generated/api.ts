@@ -42,6 +42,7 @@ import type {
   MyInvitation,
   Notification,
   NotificationsResponse,
+  PrayedStatus,
   PrayerCategory,
   PrayerCommentItem,
   PrayerRequestDetail,
@@ -2307,6 +2308,78 @@ export const useToggleCommitment = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getToggleCommitmentMutationOptions(options));
+    }
+
+export const getRecordPrayedUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}/prayed`
+}
+
+/**
+ * @summary Record that the current user prayed for this request
+ */
+export const recordPrayed = async (groupId: string,
+    requestId: string, options?: RequestInit): Promise<PrayedStatus> => {
+
+  return customFetch<PrayedStatus>(getRecordPrayedUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRecordPrayedMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordPrayed>>, TError,{groupId: string;requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordPrayed>>, TError,{groupId: string;requestId: string}, TContext> => {
+
+const mutationKey = ['recordPrayed'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordPrayed>>, {groupId: string;requestId: string}> = (props) => {
+          const {groupId,requestId} = props ?? {};
+
+          return  recordPrayed(groupId,requestId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordPrayedMutationResult = NonNullable<Awaited<ReturnType<typeof recordPrayed>>>
+
+    export type RecordPrayedMutationError = ErrorType<void>
+
+    /**
+ * @summary Record that the current user prayed for this request
+ */
+export const useRecordPrayed = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordPrayed>>, TError,{groupId: string;requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordPrayed>>,
+        TError,
+        {groupId: string;requestId: string},
+        TContext
+      > => {
+      return useMutation(getRecordPrayedMutationOptions(options));
     }
 
 export const getListCommentsUrl = (groupId: string,

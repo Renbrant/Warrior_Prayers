@@ -396,6 +396,8 @@ export interface PrayerRequestSummary {
   authorName?: string | null;
   commitmentCount: number;
   iCommitted: boolean;
+  prayedCount: number;
+  iPrayed: boolean;
   createdAt: string;
   updatedAt: string;
   /** @nullable */
@@ -466,6 +468,8 @@ export interface PrayerRequestDetail {
   isMyRequest: boolean;
   commitmentCount: number;
   iCommitted: boolean;
+  prayedCount: number;
+  iPrayed: boolean;
   updates: PrayerUpdateItem[];
   createdAt: string;
   updatedAt: string;
@@ -473,6 +477,11 @@ export interface PrayerRequestDetail {
   closedAt?: string | null;
   /** @nullable */
   archivedAt?: string | null;
+}
+
+export interface PrayedStatus {
+  prayedCount: number;
+  iPrayed: boolean;
 }
 
 export type PrayerRequestInputUrgency = typeof PrayerRequestInputUrgency[keyof typeof PrayerRequestInputUrgency];

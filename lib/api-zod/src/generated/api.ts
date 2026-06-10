@@ -515,6 +515,8 @@ export const ListPrayerRequestsResponseItem = zod.object({
   "authorName": zod.string().nullish(),
   "commitmentCount": zod.number(),
   "iCommitted": zod.boolean(),
+  "prayedCount": zod.number(),
+  "iPrayed": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string(),
   "closedAt": zod.string().nullish()
@@ -576,6 +578,8 @@ export const GetPrayerRequestResponse = zod.object({
   "isMyRequest": zod.boolean(),
   "commitmentCount": zod.number(),
   "iCommitted": zod.boolean(),
+  "prayedCount": zod.number(),
+  "iPrayed": zod.boolean(),
   "updates": zod.array(zod.object({
   "id": zod.string(),
   "updateText": zod.string(),
@@ -635,6 +639,8 @@ export const UpdatePrayerRequestResponse = zod.object({
   "isMyRequest": zod.boolean(),
   "commitmentCount": zod.number(),
   "iCommitted": zod.boolean(),
+  "prayedCount": zod.number(),
+  "iPrayed": zod.boolean(),
   "updates": zod.array(zod.object({
   "id": zod.string(),
   "updateText": zod.string(),
@@ -688,6 +694,20 @@ export const ToggleCommitmentParams = zod.object({
 export const ToggleCommitmentResponse = zod.object({
   "commitmentCount": zod.number(),
   "iCommitted": zod.boolean()
+})
+
+
+/**
+ * @summary Record that the current user prayed for this request
+ */
+export const RecordPrayedParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const RecordPrayedResponse = zod.object({
+  "prayedCount": zod.number(),
+  "iPrayed": zod.boolean()
 })
 
 
@@ -953,6 +973,8 @@ export const GetPrayerHistoryResponseItem = zod.object({
   "authorName": zod.string().nullish(),
   "commitmentCount": zod.number(),
   "iCommitted": zod.boolean(),
+  "prayedCount": zod.number(),
+  "iPrayed": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string(),
   "closedAt": zod.string().nullish()

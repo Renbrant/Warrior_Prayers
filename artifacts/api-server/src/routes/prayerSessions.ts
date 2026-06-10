@@ -8,6 +8,7 @@ import {
   prayerGroupsTable,
   prayerCommitmentsTable,
   prayerUpdatesTable,
+  prayerLogsTable,
   usersTable,
 } from "@workspace/db";
 import { eq, and, inArray, count, sql } from "drizzle-orm";
@@ -410,6 +411,21 @@ router.post(
         .set({ prayedAt: now })
         .where(eq(prayerSessionItemsTable.id, existingItem.id))
         .returning();
+
+      const [existingLog] = await db
+        .select({ id: prayerLogsTable.id })
+        .from(prayerLogsTable)
+        .where(
+          and(
+            eq(prayerLogsTable.prayerRequestId, body.requestId),
+            eq(prayerLogsTable.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      if (!existingLog) {
+        await db.insert(prayerLogsTable).values({ prayerRequestId: body.requestId, userId });
+      }
 
       res.json({
         sessionItemId: item.id,

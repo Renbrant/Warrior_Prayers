@@ -5,6 +5,7 @@ import {
   useGetPrayerRequest,
   useGetGroup,
   useToggleCommitment,
+  useRecordPrayed,
   useListComments,
   useAddComment,
   useDeleteComment,
@@ -21,6 +22,7 @@ import type { PrayerUpdateInputNewStatus, PrayerUpdateInputClosureReason } from 
 import {
   ArrowLeft,
   Heart,
+  BookOpen,
   MessageCircle,
   Send,
   Trash2,
@@ -121,6 +123,7 @@ export default function PrayerRequestDetail() {
   });
 
   const toggleCommitment = useToggleCommitment();
+  const recordPrayed = useRecordPrayed();
   const addComment = useAddComment();
   const deleteComment = useDeleteComment();
   const addUpdate = useAddPrayerUpdate();
@@ -140,6 +143,20 @@ export default function PrayerRequestDetail() {
           });
         },
         onError: () => toast({ title: t("common.error"), description: t("request.commitError"), variant: "destructive" }),
+      },
+    );
+  };
+
+  const handleRecordPrayed = () => {
+    recordPrayed.mutate(
+      { groupId: groupId!, requestId: requestId! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: getGetPrayerRequestQueryKey(groupId!, requestId!),
+          });
+        },
+        onError: () => toast({ title: t("common.error"), description: t("request.prayError"), variant: "destructive" }),
       },
     );
   };
@@ -506,6 +523,27 @@ export default function PrayerRequestDetail() {
             ? t("request.personPraying_one", { count: 1 })
             : t("request.personPraying_other", { count: request.commitmentCount })}
         </span>
+      </button>
+
+      <button
+        onClick={handleRecordPrayed}
+        disabled={recordPrayed.isPending || request.iPrayed}
+        className={`w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl border font-semibold text-sm transition-colors ${
+          request.iPrayed
+            ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400 cursor-default"
+            : "bg-card border-border hover:border-emerald-500/40 hover:bg-emerald-500/10"
+        }`}
+        data-testid="btn-prayed"
+      >
+        <BookOpen className={`w-4 h-4 ${request.iPrayed ? "text-emerald-400" : ""}`} />
+        {request.iPrayed ? t("request.alreadyPrayed") : t("request.prayedBtn")}
+        {request.prayedCount > 0 && (
+          <span className="text-muted-foreground font-normal">
+            · {request.prayedCount === 1
+              ? t("request.prayedBy_one")
+              : t("request.prayedBy_other", { count: request.prayedCount })}
+          </span>
+        )}
       </button>
 
       {request.updates.length > 0 && (

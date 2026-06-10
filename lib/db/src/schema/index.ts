@@ -311,6 +311,20 @@ export const insertPrayerSessionItemSchema = createInsertSchema(
 export type InsertPrayerSessionItem = z.infer<typeof insertPrayerSessionItemSchema>;
 export type PrayerSessionItem = typeof prayerSessionItemsTable.$inferSelect;
 
+// ─── prayer_logs ─────────────────────────────────────────────────────────────
+
+export const prayerLogsTable = pgTable("prayer_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  prayerRequestId: uuid("prayer_request_id")
+    .notNull()
+    .references(() => prayerRequestsTable.id),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => usersTable.id),
+  prayedAt: timestamp("prayed_at").defaultNow().notNull(),
+});
+export type PrayerLog = typeof prayerLogsTable.$inferSelect;
+
 // ─── notifications ────────────────────────────────────────────────────────────
 
 export const notificationsTable = pgTable("notifications", {
