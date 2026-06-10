@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,7 +36,6 @@ const profileSchema = z.object({
   phone: z.string().optional(),
   churchName: z.string().optional(),
   city: z.string().optional(),
-  preferredLanguage: z.enum(["en", "pt", "es"]),
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
@@ -117,6 +116,13 @@ export default function Profile() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
 
+  const [selectedLang, setSelectedLang] = useState<"en" | "pt" | "es">(
+    () => {
+      const saved = localStorage.getItem("language");
+      return (saved === "en" || saved === "pt" || saved === "es") ? saved : "en";
+    },
+  );
+
   const { data: user, isLoading } = useGetMe({
     query: { queryKey: getGetMeQueryKey() },
   });
@@ -131,7 +137,6 @@ export default function Profile() {
       phone: "",
       churchName: "",
       city: "",
-      preferredLanguage: "en",
     },
   });
 
@@ -142,17 +147,17 @@ export default function Profile() {
       form.setValue("phone", user.phone ?? "");
       form.setValue("churchName", user.churchName ?? "");
       form.setValue("city", user.city ?? "");
-      form.setValue(
-        "preferredLanguage",
-        (user.preferredLanguage as "en" | "pt" | "es") ?? "en",
-      );
+      const lang = user.preferredLanguage;
+      if (lang === "en" || lang === "pt" || lang === "es") {
+        setSelectedLang(lang);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const onSubmit = (data: ProfileValues) => {
-    i18n.changeLanguage(data.preferredLanguage);
-    localStorage.setItem("language", data.preferredLanguage);
+    i18n.changeLanguage(selectedLang);
+    localStorage.setItem("language", selectedLang);
 
     const payload = {
       fullName: data.fullName,
@@ -160,7 +165,7 @@ export default function Profile() {
       phone: data.phone || undefined,
       churchName: data.churchName || undefined,
       city: data.city || undefined,
-      preferredLanguage: data.preferredLanguage,
+      preferredLanguage: selectedLang,
     };
 
     updateMe.mutate(
@@ -266,28 +271,25 @@ export default function Profile() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="preferredLanguage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">Language</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-background rounded-2xl h-12 px-4" data-testid="select-lang">
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="pt">Português</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80">Language</label>
+              <Select
+                value={selectedLang}
+                onValueChange={(v) => setSelectedLang(v as "en" | "pt" | "es")}
+              >
+                <SelectTrigger
+                  className="bg-background rounded-2xl h-12 px-4"
+                  data-testid="select-lang"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="pt">Português</SelectItem>
+                  <SelectItem value="es">Español</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="grid sm:grid-cols-2 gap-5">
               <FormField
