@@ -83,3 +83,213 @@ export interface DashboardSummary {
   pendingInvitationCount: number;
 }
 
+export type GroupSummaryMyRole = typeof GroupSummaryMyRole[keyof typeof GroupSummaryMyRole];
+
+
+export const GroupSummaryMyRole = {
+  admin: 'admin',
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export interface GroupSummary {
+  id: string;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  churchName?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  /** @nullable */
+  verse?: string | null;
+  memberCount: number;
+  myRole: GroupSummaryMyRole;
+  createdAt: string;
+}
+
+export type GroupDetailMyRole = typeof GroupDetailMyRole[keyof typeof GroupDetailMyRole];
+
+
+export const GroupDetailMyRole = {
+  admin: 'admin',
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export interface GroupDetail {
+  id: string;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  churchName?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  /** @nullable */
+  verse?: string | null;
+  hidePrayerPersonNames: boolean;
+  allowCustomCategories: boolean;
+  allowComments: boolean;
+  allowAnonymousRequests: boolean;
+  adminsCanViewAnonymousAuthors: boolean;
+  memberCount: number;
+  myRole: GroupDetailMyRole;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroupInput {
+  /** @minLength 1 */
+  name: string;
+  description?: string;
+  churchName?: string;
+  city?: string;
+  imageUrl?: string;
+  verse?: string;
+  hidePrayerPersonNames?: boolean;
+  allowCustomCategories?: boolean;
+  allowComments?: boolean;
+  allowAnonymousRequests?: boolean;
+  adminsCanViewAnonymousAuthors?: boolean;
+}
+
+export interface GroupSettingsInput {
+  /** @minLength 1 */
+  name?: string;
+  description?: string;
+  churchName?: string;
+  city?: string;
+  imageUrl?: string;
+  verse?: string;
+  hidePrayerPersonNames?: boolean;
+  allowCustomCategories?: boolean;
+  allowComments?: boolean;
+  allowAnonymousRequests?: boolean;
+  adminsCanViewAnonymousAuthors?: boolean;
+}
+
+export type GroupMemberDetailRole = typeof GroupMemberDetailRole[keyof typeof GroupMemberDetailRole];
+
+
+export const GroupMemberDetailRole = {
+  admin: 'admin',
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export interface GroupMemberDetail {
+  id: string;
+  userId: string;
+  groupId: string;
+  role: GroupMemberDetailRole;
+  status: string;
+  joinedAt: string;
+  /** @nullable */
+  fullName?: string | null;
+  email: string;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
+}
+
+export type MemberRoleInputRole = typeof MemberRoleInputRole[keyof typeof MemberRoleInputRole];
+
+
+export const MemberRoleInputRole = {
+  admin: 'admin',
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export interface MemberRoleInput {
+  role: MemberRoleInputRole;
+}
+
+export type GroupInviteStatus = typeof GroupInviteStatus[keyof typeof GroupInviteStatus];
+
+
+export const GroupInviteStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  declined: 'declined',
+  expired: 'expired',
+  revoked: 'revoked',
+} as const;
+
+export interface GroupInvite {
+  id: string;
+  groupId: string;
+  /** @nullable */
+  invitedEmail?: string | null;
+  token: string;
+  status: GroupInviteStatus;
+  /** @nullable */
+  expiresAt?: string | null;
+  /** @nullable */
+  maxUses?: number | null;
+  usedCount: number;
+  createdAt: string;
+  /** @nullable */
+  acceptedAt?: string | null;
+  /** @nullable */
+  revokedAt?: string | null;
+  inviteUrl: string;
+}
+
+export interface InviteInput {
+  invitedEmail?: string;
+  /**
+     * @minimum 1
+     * @maximum 90
+     */
+  expiresInDays?: number;
+  /** @minimum 1 */
+  maxUses?: number;
+}
+
+export interface MyInvitation {
+  id: string;
+  token: string;
+  groupId: string;
+  groupName: string;
+  /** @nullable */
+  groupDescription?: string | null;
+  /** @nullable */
+  invitedByName?: string | null;
+  invitedByEmail: string;
+  createdAt: string;
+  /** @nullable */
+  expiresAt?: string | null;
+}
+
+export type InvitePreviewStatus = typeof InvitePreviewStatus[keyof typeof InvitePreviewStatus];
+
+
+export const InvitePreviewStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  declined: 'declined',
+  expired: 'expired',
+  revoked: 'revoked',
+} as const;
+
+export interface InvitePreview {
+  id: string;
+  token: string;
+  groupId: string;
+  groupName: string;
+  /** @nullable */
+  groupDescription?: string | null;
+  /** @nullable */
+  invitedByName?: string | null;
+  status: InvitePreviewStatus;
+  /** @nullable */
+  expiresAt?: string | null;
+  isExpired: boolean;
+}
+

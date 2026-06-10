@@ -11,6 +11,13 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import CompleteProfile from "@/pages/complete-profile";
+import CreateGroup from "@/pages/create-group";
+import GroupDashboard from "@/pages/group-dashboard";
+import GroupMembers from "@/pages/group-members";
+import GroupInvite from "@/pages/group-invite";
+import GroupSettings from "@/pages/group-settings";
+import MyInvitations from "@/pages/my-invitations";
+import AcceptInvite from "@/pages/accept-invite";
 import { AppShell } from "@/components/layout/app-shell";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
@@ -154,20 +161,20 @@ function ProtectedAppShell() {
         <AppShell>
           <Switch>
             <Route path="/app/dashboard" component={Dashboard} />
-            <Route path="/app/groups/create">
-              <div className="p-10 text-center text-muted-foreground mt-20 max-w-md mx-auto bg-card rounded-3xl border border-border">
-                <h2 className="text-xl font-bold text-foreground mb-2">Group Creation</h2>
-                <p>This feature is coming soon.</p>
-              </div>
-            </Route>
+            <Route path="/app/invitations" component={MyInvitations} />
+            <Route path="/app/groups/create" component={CreateGroup} />
+            <Route path="/app/groups/:groupId/settings" component={GroupSettings} />
+            <Route path="/app/groups/:groupId/invite" component={GroupInvite} />
+            <Route path="/app/groups/:groupId/members" component={GroupMembers} />
+            <Route path="/app/groups/:groupId" component={GroupDashboard} />
             <Route path="/app/groups">
-              <div className="p-10 text-center text-muted-foreground mt-20">Groups coming soon</div>
+              <Redirect to="/app/dashboard" />
             </Route>
             <Route path="/app/pray">
-              <div className="p-10 text-center text-muted-foreground mt-20">Pray coming soon</div>
+              <div className="p-10 text-center text-muted-foreground mt-20">Prayer mode coming in Phase 4</div>
             </Route>
             <Route path="/app/notifications">
-              <div className="p-10 text-center text-muted-foreground mt-20">Notifications coming soon</div>
+              <Redirect to="/app/invitations" />
             </Route>
             <Route path="/app/profile">
               <Redirect to="/complete-profile" />
@@ -210,6 +217,7 @@ function ClerkProviderWithRoutes() {
               <Redirect to="/" />
             </Show>
           </Route>
+          <Route path="/invite/:token" component={AcceptInvite} />
           <Route path="/app/*" component={ProtectedAppShell} />
           <Route component={NotFound} />
         </Switch>

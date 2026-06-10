@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -109,6 +108,298 @@ export const GetDashboardSummaryResponse = zod.object({
   "answeredPrayerCount": zod.number(),
   "myCommittedRequestCount": zod.number(),
   "pendingInvitationCount": zod.number()
+})
+
+
+/**
+ * @summary List all groups the current user belongs to
+ */
+export const ListMyGroupsResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "churchName": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "verse": zod.string().nullish(),
+  "memberCount": zod.number(),
+  "myRole": zod.enum(['admin', 'moderator', 'member']),
+  "createdAt": zod.string()
+})
+export const ListMyGroupsResponse = zod.array(ListMyGroupsResponseItem)
+
+
+/**
+ * @summary Create a new prayer group
+ */
+
+
+
+export const CreateGroupBody = zod.object({
+  "name": zod.string().min(1),
+  "description": zod.string().optional(),
+  "churchName": zod.string().optional(),
+  "city": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "verse": zod.string().optional(),
+  "hidePrayerPersonNames": zod.boolean().optional(),
+  "allowCustomCategories": zod.boolean().optional(),
+  "allowComments": zod.boolean().optional(),
+  "allowAnonymousRequests": zod.boolean().optional(),
+  "adminsCanViewAnonymousAuthors": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get group details
+ */
+export const GetGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const GetGroupResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "churchName": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "verse": zod.string().nullish(),
+  "hidePrayerPersonNames": zod.boolean(),
+  "allowCustomCategories": zod.boolean(),
+  "allowComments": zod.boolean(),
+  "allowAnonymousRequests": zod.boolean(),
+  "adminsCanViewAnonymousAuthors": zod.boolean(),
+  "memberCount": zod.number(),
+  "myRole": zod.enum(['admin', 'moderator', 'member']),
+  "createdByUserId": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update group settings (admin only)
+ */
+export const UpdateGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+
+
+
+export const UpdateGroupBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "churchName": zod.string().optional(),
+  "city": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "verse": zod.string().optional(),
+  "hidePrayerPersonNames": zod.boolean().optional(),
+  "allowCustomCategories": zod.boolean().optional(),
+  "allowComments": zod.boolean().optional(),
+  "allowAnonymousRequests": zod.boolean().optional(),
+  "adminsCanViewAnonymousAuthors": zod.boolean().optional()
+})
+
+export const UpdateGroupResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "churchName": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "verse": zod.string().nullish(),
+  "hidePrayerPersonNames": zod.boolean(),
+  "allowCustomCategories": zod.boolean(),
+  "allowComments": zod.boolean(),
+  "allowAnonymousRequests": zod.boolean(),
+  "adminsCanViewAnonymousAuthors": zod.boolean(),
+  "memberCount": zod.number(),
+  "myRole": zod.enum(['admin', 'moderator', 'member']),
+  "createdByUserId": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary List all active members of a group
+ */
+export const ListGroupMembersParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListGroupMembersResponseItem = zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "groupId": zod.string(),
+  "role": zod.enum(['admin', 'moderator', 'member']),
+  "status": zod.string(),
+  "joinedAt": zod.string(),
+  "fullName": zod.string().nullish(),
+  "email": zod.string(),
+  "profilePhotoUrl": zod.string().nullish()
+})
+export const ListGroupMembersResponse = zod.array(ListGroupMembersResponseItem)
+
+
+/**
+ * @summary Update a member's role (admin only)
+ */
+export const UpdateGroupMemberParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const UpdateGroupMemberBody = zod.object({
+  "role": zod.enum(['admin', 'moderator', 'member'])
+})
+
+export const UpdateGroupMemberResponse = zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "groupId": zod.string(),
+  "role": zod.enum(['admin', 'moderator', 'member']),
+  "status": zod.string(),
+  "joinedAt": zod.string(),
+  "fullName": zod.string().nullish(),
+  "email": zod.string(),
+  "profilePhotoUrl": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove a member from a group (admin only)
+ */
+export const RemoveGroupMemberParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+
+/**
+ * @summary List all invites for a group (admin only)
+ */
+export const ListGroupInvitesParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListGroupInvitesResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "invitedEmail": zod.string().nullish(),
+  "token": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'expired', 'revoked']),
+  "expiresAt": zod.string().nullish(),
+  "maxUses": zod.number().nullish(),
+  "usedCount": zod.number(),
+  "createdAt": zod.string(),
+  "acceptedAt": zod.string().nullish(),
+  "revokedAt": zod.string().nullish(),
+  "inviteUrl": zod.string()
+})
+export const ListGroupInvitesResponse = zod.array(ListGroupInvitesResponseItem)
+
+
+/**
+ * @summary Create a new invite (email or link) — admin only
+ */
+export const CreateGroupInviteParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const createGroupInviteBodyExpiresInDaysMax = 90;
+
+
+
+
+export const CreateGroupInviteBody = zod.object({
+  "invitedEmail": zod.string().email().optional(),
+  "expiresInDays": zod.number().min(1).max(createGroupInviteBodyExpiresInDaysMax).optional(),
+  "maxUses": zod.number().min(1).optional()
+})
+
+
+/**
+ * @summary Revoke a pending invite (admin only)
+ */
+export const RevokeGroupInviteParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "inviteId": zod.coerce.string()
+})
+
+
+/**
+ * @summary List pending invitations for the current user (by email)
+ */
+export const ListMyInvitationsResponseItem = zod.object({
+  "id": zod.string(),
+  "token": zod.string(),
+  "groupId": zod.string(),
+  "groupName": zod.string(),
+  "groupDescription": zod.string().nullish(),
+  "invitedByName": zod.string().nullish(),
+  "invitedByEmail": zod.string(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+export const ListMyInvitationsResponse = zod.array(ListMyInvitationsResponseItem)
+
+
+/**
+ * @summary Get invite details by token (public)
+ */
+export const GetInviteByTokenParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const GetInviteByTokenResponse = zod.object({
+  "id": zod.string(),
+  "token": zod.string(),
+  "groupId": zod.string(),
+  "groupName": zod.string(),
+  "groupDescription": zod.string().nullish(),
+  "invitedByName": zod.string().nullish(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'expired', 'revoked']),
+  "expiresAt": zod.string().nullish(),
+  "isExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Accept an invitation
+ */
+export const AcceptInviteParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const AcceptInviteResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "churchName": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "verse": zod.string().nullish(),
+  "hidePrayerPersonNames": zod.boolean(),
+  "allowCustomCategories": zod.boolean(),
+  "allowComments": zod.boolean(),
+  "allowAnonymousRequests": zod.boolean(),
+  "adminsCanViewAnonymousAuthors": zod.boolean(),
+  "memberCount": zod.number(),
+  "myRole": zod.enum(['admin', 'moderator', 'member']),
+  "createdByUserId": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Decline an invitation
+ */
+export const DeclineInviteParams = zod.object({
+  "token": zod.coerce.string()
 })
 
 
