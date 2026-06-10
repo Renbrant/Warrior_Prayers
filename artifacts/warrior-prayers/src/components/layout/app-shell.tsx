@@ -1,8 +1,7 @@
 import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Users, Heart, Bell, User, ChevronRight, HandCoins, Sun, Moon } from "lucide-react";
+import { Home, Users, Heart, Bell, User, ChevronRight, HandCoins } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "@/lib/theme";
 import {
   useListNotifications,
   useListMyGroups,
@@ -25,7 +24,6 @@ function NotificationBadge({ count }: { count: number }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { t, i18n } = useTranslation();
-  const { theme, toggleTheme } = useTheme();
 
   const { data: me } = useGetMe({
     query: { queryKey: getGetMeQueryKey(), staleTime: 300000 },
@@ -123,14 +121,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
         </nav>
         <div className="p-4 border-t border-border space-y-2">
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-medium"
-            data-testid="theme-toggle"
-          >
-            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            <span>{theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}</span>
-          </button>
           <Link
             href="/app/profile"
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-medium"
@@ -156,16 +146,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="flex-1 pb-20 md:pb-0 overflow-y-auto">
         {children}
       </main>
-
-      {/* Mobile Theme Toggle */}
-      <button
-        onClick={toggleTheme}
-        className="md:hidden fixed top-3 right-3 z-50 flex items-center justify-center w-9 h-9 rounded-full bg-card border border-border text-muted-foreground shadow-md transition-colors hover:text-foreground"
-        data-testid="theme-toggle-mobile"
-        aria-label={theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}
-      >
-        {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-      </button>
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card flex justify-around p-2 z-50">

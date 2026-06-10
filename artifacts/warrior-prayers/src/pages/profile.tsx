@@ -11,7 +11,8 @@ import {
   getGetMeQueryKey,
 } from "@workspace/api-client-react";
 import { useClerk } from "@clerk/react";
-import { ArrowLeft, LogOut, User } from "lucide-react";
+import { ArrowLeft, LogOut, User, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
@@ -44,6 +45,8 @@ export default function Profile() {
   const { t, i18n } = useTranslation();
   const { signOut } = useClerk();
   const queryClient = useQueryClient();
+
+  const { theme, toggleTheme } = useTheme();
 
   const [selectedLang, setSelectedLang] = useState<"en" | "pt" | "es">(
     () => {
@@ -225,6 +228,22 @@ export default function Profile() {
                   <SelectItem value="es">Español</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80">{t("profile.theme")}</label>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                data-testid="theme-toggle"
+                className="flex items-center gap-3 w-full bg-background border border-border rounded-2xl h-12 px-4 text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                {theme === "dark"
+                  ? <><Moon className="w-4 h-4 text-muted-foreground" /><span>{t("nav.darkMode")}</span></>
+                  : <><Sun className="w-4 h-4 text-muted-foreground" /><span>{t("nav.lightMode")}</span></>
+                }
+                <span className="ml-auto text-xs text-muted-foreground">{t("profile.tapToSwitch")}</span>
+              </button>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-5">
