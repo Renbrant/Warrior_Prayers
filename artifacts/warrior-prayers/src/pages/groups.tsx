@@ -16,8 +16,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 function RoleBadge({ role }: { role: string }) {
+  const { t } = useTranslation();
   const colors: Record<string, string> = {
     admin: "bg-primary/20 text-primary border-primary/30",
     moderator: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -27,13 +29,14 @@ function RoleBadge({ role }: { role: string }) {
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${colors[role] ?? colors.member}`}
     >
-      {role.charAt(0).toUpperCase() + role.slice(1)}
+      {t(`role.${role}`, role.charAt(0).toUpperCase() + role.slice(1))}
     </span>
   );
 }
 
 export default function Groups() {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const { data: user } = useGetMe({
     query: { queryKey: getGetMeQueryKey(), staleTime: 60000 },
@@ -55,9 +58,9 @@ export default function Groups() {
     return (
       <div className="p-10 flex flex-col items-center gap-4 text-center">
         <AlertCircle className="w-10 h-10 text-destructive" />
-        <p className="text-muted-foreground">Failed to load groups. Please try again.</p>
+        <p className="text-muted-foreground">{t("groups.failedLoad")}</p>
         <Button variant="outline" onClick={() => void refetch()} className="rounded-full">
-          Try Again
+          {t("common.tryAgain")}
         </Button>
       </div>
     );
@@ -68,15 +71,15 @@ export default function Groups() {
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground flex items-center gap-2">
-            <Users className="w-6 h-6 text-primary" /> My Groups
+            <Users className="w-6 h-6 text-primary" /> {t("groups.myGroups")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Prayer groups you belong to
+            {t("groups.myGroupsSubtitle")}
           </p>
         </div>
         <Button asChild className="rounded-full h-10 px-6 font-semibold shadow-md shadow-primary/20 shrink-0">
           <Link href="/app/groups/create" data-testid="btn-create-group">
-            <Plus className="w-4 h-4 mr-1" /> New Group
+            <Plus className="w-4 h-4 mr-1" /> {t("groups.newGroup")}
           </Link>
         </Button>
       </header>
@@ -93,7 +96,7 @@ export default function Groups() {
             <Users className="w-10 h-10 text-primary" />
           </div>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            You are not part of any prayer group yet. Create a group or accept an invitation to get started.
+            {t("groups.empty.desc")}
           </p>
           <Button
             asChild
@@ -101,7 +104,7 @@ export default function Groups() {
             className="rounded-full h-12 px-8 font-semibold shadow-lg shadow-primary/20"
           >
             <Link href="/app/groups/create" data-testid="btn-create-group-empty">
-              Create Prayer Group
+              {t("groups.createGroup")}
             </Link>
           </Button>
         </div>
@@ -142,7 +145,7 @@ export default function Groups() {
               </div>
               <div className="flex items-center justify-between mt-4">
                 <span className="text-xs text-muted-foreground">
-                  {group.memberCount} member{group.memberCount !== 1 ? "s" : ""}
+                  {t(group.memberCount === 1 ? "common.members_one" : "common.members_other", { count: group.memberCount })}
                 </span>
                 <RoleBadge role={group.myRole} />
               </div>

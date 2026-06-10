@@ -21,8 +21,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 function RoleBadge({ role }: { role: string }) {
+  const { t } = useTranslation();
   const colors: Record<string, string> = {
     admin: "bg-primary/20 text-primary border-primary/30",
     moderator: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -30,7 +32,7 @@ function RoleBadge({ role }: { role: string }) {
   };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors[role] ?? colors.member}`}>
-      {role.charAt(0).toUpperCase() + role.slice(1)}
+      {t(`role.${role}`, role.charAt(0).toUpperCase() + role.slice(1))}
     </span>
   );
 }
@@ -54,6 +56,7 @@ export default function GroupDashboard() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
   const { data: group, isLoading: isGroupLoading, isError: isGroupError, refetch: refetchGroup } = useGetGroup(groupId!, {
@@ -68,15 +71,14 @@ export default function GroupDashboard() {
     mutation: {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: ["/groups"] });
-        toast({ title: "Left group", description: "You have left the group." });
         setLocation("/app/dashboard");
       },
       onError: (err: unknown) => {
         const msg =
           err && typeof err === "object" && "message" in err
             ? String((err as { message: string }).message)
-            : "Could not leave the group.";
-        toast({ title: "Error", description: msg, variant: "destructive" });
+            : t("groupDash.failedLoad");
+        toast({ title: t("common.error"), description: msg, variant: "destructive" });
       },
     },
   });
@@ -99,9 +101,9 @@ export default function GroupDashboard() {
     return (
       <div className="p-10 flex flex-col items-center gap-4 text-center">
         <AlertCircle className="w-10 h-10 text-destructive" />
-        <p className="text-muted-foreground">Failed to load group. Please try again.</p>
+        <p className="text-muted-foreground">{t("groupDash.failedLoad")}</p>
         <Button variant="outline" onClick={() => void refetchGroup()} className="rounded-full" data-testid="btn-retry-group">
-          <RefreshCw className="w-4 h-4 mr-2" /> Try Again
+          <RefreshCw className="w-4 h-4 mr-2" /> {t("common.tryAgain")}
         </Button>
       </div>
     );
@@ -110,9 +112,9 @@ export default function GroupDashboard() {
   if (!group) {
     return (
       <div className="p-10 text-center text-muted-foreground">
-        <p>Group not found or you don't have access.</p>
+        <p>{t("groupDash.notFound")}</p>
         <Button variant="ghost" onClick={() => setLocation("/app/dashboard")} className="mt-4">
-          Back to Dashboard
+          {t("common.backToDashboard")}
         </Button>
       </div>
     );
@@ -168,7 +170,7 @@ export default function GroupDashboard() {
                 className="rounded-full"
                 data-testid="btn-invite"
               >
-                <UserPlus className="w-4 h-4 mr-1.5" /> Invite Members
+                <UserPlus className="w-4 h-4 mr-1.5" /> {t("groupDash.inviteMembers")}
               </Button>
             )}
             {isAdmin && (
@@ -179,7 +181,7 @@ export default function GroupDashboard() {
                 className="rounded-full"
                 data-testid="btn-settings"
               >
-                <Settings className="w-4 h-4 mr-1.5" /> Settings
+                <Settings className="w-4 h-4 mr-1.5" /> {t("groupDash.settings")}
               </Button>
             )}
             <Button
@@ -189,7 +191,7 @@ export default function GroupDashboard() {
               className="rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
               data-testid="btn-leave-group"
             >
-              <LogOut className="w-4 h-4 mr-1.5" /> Leave Group
+              <LogOut className="w-4 h-4 mr-1.5" /> {t("groupDash.leaveGroup")}
             </Button>
           </div>
         </div>
@@ -198,15 +200,15 @@ export default function GroupDashboard() {
       <div className="grid sm:grid-cols-2 gap-4">
         <ActionCard
           icon={Plus}
-          title="Add Prayer Request"
-          description="Share a request with the group"
+          title={t("groupDash.addRequest")}
+          description={t("groupDash.addRequestDesc")}
           onClick={() => setLocation(`/app/groups/${groupId}/requests/new`)}
           testId="btn-add-request"
         />
         <ActionCard
           icon={Flame}
-          title="Start Praying"
-          description="Enter focused prayer mode"
+          title={t("groupDash.startPraying")}
+          description={t("groupDash.startPrayingDesc")}
           onClick={() => setLocation(`/app/groups/${groupId}/pray`)}
           testId="btn-start-praying"
         />
@@ -215,7 +217,7 @@ export default function GroupDashboard() {
       <section className="bg-card border border-border rounded-3xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-            <Users className="w-4 h-4 text-primary" /> Members
+            <Users className="w-4 h-4 text-primary" /> {t("groupDash.members")}
             <span className="text-sm font-normal text-muted-foreground">({group.memberCount})</span>
           </h2>
           <Button
@@ -225,7 +227,7 @@ export default function GroupDashboard() {
             className="text-primary hover:text-primary rounded-full text-sm"
             data-testid="btn-view-all-members"
           >
-            View All →
+            {t("common.viewAll")}
           </Button>
         </div>
 
@@ -234,7 +236,7 @@ export default function GroupDashboard() {
             {[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}
           </div>
         ) : previewMembers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No members found.</p>
+          <p className="text-sm text-muted-foreground">{t("groupDash.noMembers")}</p>
         ) : (
           <ul className="space-y-2">
             {previewMembers.map((m) => (
@@ -254,7 +256,7 @@ export default function GroupDashboard() {
       <section className="bg-card border border-border rounded-3xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-            <Flame className="w-4 h-4 text-primary" /> Prayer Requests
+            <Flame className="w-4 h-4 text-primary" /> {t("groupDash.prayerRequests")}
           </h2>
           <Button
             variant="ghost"
@@ -263,11 +265,11 @@ export default function GroupDashboard() {
             className="text-primary hover:text-primary rounded-full text-sm"
             data-testid="btn-view-all-requests"
           >
-            View All →
+            {t("common.viewAll")}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Share needs, commit to pray, and celebrate answered prayers.
+          {t("groupDash.prayerRequestsDesc")}
         </p>
         <Button
           className="w-full rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
@@ -275,33 +277,32 @@ export default function GroupDashboard() {
           onClick={() => setLocation(`/app/groups/${groupId}/requests`)}
           data-testid="btn-open-requests"
         >
-          Open Prayer Requests
+          {t("groupDash.openRequests")}
         </Button>
       </section>
 
       <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Leave "{group.name}"?</AlertDialogTitle>
+            <AlertDialogTitle>{t("groupDash.leaveConfirmTitle", { name: group.name })}</AlertDialogTitle>
             <AlertDialogDescription>
-              You will no longer have access to this group's prayer requests. You can rejoin later
-              only if you receive a new invitation.
+              {t("groupDash.leaveConfirmDesc")}
               {isAdmin && (
                 <span className="block mt-2 text-yellow-400">
-                  You are an admin. Make sure another admin exists before leaving.
+                  {t("groupDash.leaveAdminWarning")}
                 </span>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => leaveGroup.mutate({ groupId: groupId! })}
               disabled={leaveGroup.isPending}
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               data-testid="btn-confirm-leave"
             >
-              {leaveGroup.isPending ? "Leaving…" : "Leave Group"}
+              {leaveGroup.isPending ? t("groupDash.leavingBtn") : t("groupDash.leaveBtn")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -15,7 +15,6 @@ import {
   Clock,
   ChevronRight,
   History,
-  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 const URGENCY_BADGE: Record<string, string> = {
   urgent: "bg-red-500/20 text-red-400 border-red-500/30",
@@ -33,20 +33,14 @@ const URGENCY_BADGE: Record<string, string> = {
   normal: "bg-muted text-muted-foreground border-border",
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  active: "Active",
-  follow_up: "Follow-up",
-  closed: "Closed",
-  archived: "Archived",
-};
-
 function UrgencyBadge({ urgency }: { urgency: string }) {
+  const { t } = useTranslation();
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${URGENCY_BADGE[urgency] ?? URGENCY_BADGE.normal}`}
     >
       {urgency === "urgent" && <Flame className="w-3 h-3 mr-1" />}
-      {urgency.charAt(0).toUpperCase() + urgency.slice(1)}
+      {t(`requests.urgency.${urgency}`, urgency.charAt(0).toUpperCase() + urgency.slice(1))}
     </span>
   );
 }
@@ -54,6 +48,7 @@ function UrgencyBadge({ urgency }: { urgency: string }) {
 export default function PrayerRequestList() {
   const { groupId } = useParams<{ groupId: string }>();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const [statusFilter, setStatusFilter] = useState<string>("active");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
@@ -81,18 +76,19 @@ export default function PrayerRequestList() {
   });
 
   const isAdmin = group?.myRole === "admin";
-  const isMod = group?.myRole === "admin" || group?.myRole === "moderator";
 
   if (isError) {
     return (
       <div className="p-10 flex flex-col items-center gap-4 text-center">
-        <p className="text-muted-foreground">Failed to load prayer requests.</p>
+        <p className="text-muted-foreground">{t("requests.failedLoad")}</p>
         <Button variant="outline" onClick={() => void refetch()} className="rounded-full" data-testid="btn-retry-requests">
-          Try Again
+          {t("common.tryAgain")}
         </Button>
       </div>
     );
   }
+
+  const statusLabel = t(`requests.status.${statusFilter}`, statusFilter);
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
@@ -106,7 +102,7 @@ export default function PrayerRequestList() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">Prayer Requests</h1>
+          <h1 className="text-2xl font-bold">{t("requests.title")}</h1>
           {group?.name && (
             <p className="text-sm text-muted-foreground">{group.name}</p>
           )}
@@ -117,7 +113,7 @@ export default function PrayerRequestList() {
           onClick={() => setLocation(`/app/groups/${groupId}/history`)}
           className="rounded-full"
         >
-          <History className="w-4 h-4 mr-1.5" /> History
+          <History className="w-4 h-4 mr-1.5" /> {t("requests.history")}
         </Button>
         <Button
           size="sm"
@@ -125,42 +121,42 @@ export default function PrayerRequestList() {
           className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
           data-testid="btn-new-request"
         >
-          <Plus className="w-4 h-4 mr-1.5" /> New
+          <Plus className="w-4 h-4 mr-1.5" /> {t("requests.new")}
         </Button>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-36 rounded-xl h-9">
-            <SelectValue placeholder="Status" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="follow_up">Follow-up</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-            {isAdmin && <SelectItem value="archived">Archived</SelectItem>}
+            <SelectItem value="active">{t("requests.status.active")}</SelectItem>
+            <SelectItem value="follow_up">{t("requests.status.follow_up")}</SelectItem>
+            <SelectItem value="closed">{t("requests.status.closed")}</SelectItem>
+            {isAdmin && <SelectItem value="archived">{t("requests.status.archived")}</SelectItem>}
           </SelectContent>
         </Select>
 
         <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
           <SelectTrigger className="w-36 rounded-xl h-9">
-            <SelectValue placeholder="Urgency" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All urgency</SelectItem>
-            <SelectItem value="urgent">Urgent</SelectItem>
-            <SelectItem value="important">Important</SelectItem>
-            <SelectItem value="normal">Normal</SelectItem>
+            <SelectItem value="all">{t("requests.urgency.all")}</SelectItem>
+            <SelectItem value="urgent">{t("requests.urgency.urgent")}</SelectItem>
+            <SelectItem value="important">{t("requests.urgency.important")}</SelectItem>
+            <SelectItem value="normal">{t("requests.urgency.normal")}</SelectItem>
           </SelectContent>
         </Select>
 
         {categories.length > 0 && (
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-40 rounded-xl h-9">
-              <SelectValue placeholder="Category" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
+              <SelectItem value="all">{t("requests.allCategories")}</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
                   {cat.name}
@@ -180,11 +176,11 @@ export default function PrayerRequestList() {
       ) : requests.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground space-y-2">
           <Flame className="w-10 h-10 mx-auto opacity-30" />
-          <p className="font-medium">No prayer requests</p>
+          <p className="font-medium">{t("requests.noPrayers")}</p>
           <p className="text-sm">
             {statusFilter === "active"
-              ? "Be the first to share a request."
-              : `No ${STATUS_LABEL[statusFilter]?.toLowerCase()} requests.`}
+              ? t("requests.beFirst")
+              : t("requests.noStatus", { status: statusLabel.toLowerCase() })}
           </p>
         </div>
       ) : (
@@ -192,9 +188,7 @@ export default function PrayerRequestList() {
           {requests.map((req) => (
             <button
               key={req.id}
-              onClick={() =>
-                setLocation(`/app/groups/${groupId}/requests/${req.id}`)
-              }
+              onClick={() => setLocation(`/app/groups/${groupId}/requests/${req.id}`)}
               className="w-full text-left bg-card border border-border rounded-2xl p-4 hover:border-primary/40 hover:bg-card/80 transition-colors group"
               data-testid={`prayer-request-${req.id}`}
             >
@@ -218,7 +212,7 @@ export default function PrayerRequestList() {
                   <p className="font-semibold text-foreground truncate">{req.title}</p>
                   {(req.prayerPersonName || req.prayerPersonInitials) && (
                     <p className="text-sm text-muted-foreground">
-                      For{" "}
+                      {t("requests.for")}{" "}
                       <span className="font-medium">
                         {group?.hidePrayerPersonNames
                           ? req.prayerPersonInitials
@@ -228,11 +222,12 @@ export default function PrayerRequestList() {
                   )}
                   <div className="flex items-center gap-3 text-xs text-muted-foreground pt-0.5">
                     <span>
-                      {req.commitmentCount}{" "}
-                      {req.commitmentCount === 1 ? "praying" : "praying"}
+                      {req.commitmentCount === 1
+                        ? t("requests.praying_one", { count: 1 })
+                        : t("requests.praying_other", { count: req.commitmentCount })}
                     </span>
                     {req.isAnonymous && (
-                      <span className="italic">Anonymous</span>
+                      <span className="italic">{t("requests.anonymous")}</span>
                     )}
                     {req.importantDate && (
                       <span className="flex items-center gap-1">

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import {
   useStartPrayerSession,
   useMarkPrayed,
@@ -45,12 +46,13 @@ const URGENCY_BADGE: Record<string, string> = {
 };
 
 function UrgencyBadge({ urgency }: { urgency: string }) {
+  const { t } = useTranslation();
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${URGENCY_BADGE[urgency] ?? URGENCY_BADGE.normal}`}
     >
       {urgency === "urgent" && <Flame className="w-3 h-3" />}
-      {urgency.charAt(0).toUpperCase() + urgency.slice(1)}
+      {t(`requests.urgency.${urgency}`, urgency)}
     </span>
   );
 }
@@ -74,9 +76,23 @@ function SetupPhase({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [, setLocation] = useLocation();
 
+  const { t } = useTranslation();
+
   const { data: categories } = useListCategories(groupId, {
     query: { queryKey: getListCategoriesQueryKey(groupId), enabled: !!groupId },
   });
+
+  const FILTER_OPTIONS: [FilterType, string][] = [
+    ["all_active", t("prayerMode.filter.allActive")],
+    ["urgent_only", t("prayerMode.filter.urgentOnly")],
+    ["important_urgent", t("prayerMode.filter.importantUrgent")],
+    ["not_yet_prayed", t("prayerMode.filter.notYetPrayed")],
+    ["already_praying", t("prayerMode.filter.alreadyPraying")],
+    ["created_by_me", t("prayerMode.filter.createdByMe")],
+    ["anonymous", t("prayerMode.filter.anonymous")],
+    ["recent_updates", t("prayerMode.filter.recentUpdates")],
+    ["by_category", t("prayerMode.filter.byCategory")],
+  ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -91,7 +107,7 @@ function SetupPhase({
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="font-bold text-foreground">Prayer Mode</h1>
+          <h1 className="font-bold text-foreground">{t("prayerMode.title")}</h1>
           <p className="text-xs text-muted-foreground">{groupName}</p>
         </div>
       </header>
@@ -101,66 +117,54 @@ function SetupPhase({
           <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto">
             <Flame className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-2xl font-extrabold text-foreground">Ready to Pray?</h2>
-          <p className="text-muted-foreground text-sm">Choose how you'd like to pray through your group's requests.</p>
+          <h2 className="text-2xl font-extrabold text-foreground">{t("prayerMode.readyToPray")}</h2>
+          <p className="text-muted-foreground text-sm">{t("prayerMode.subtitle")}</p>
         </div>
 
         <section className="space-y-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prayer Style</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("prayerMode.prayerStyle")}</h3>
           <div className="grid grid-cols-2 gap-3">
             <ModeCard
               selected={mode === "detailed"}
               onClick={() => setMode("detailed")}
-              title="Detailed"
-              description="Read each request card-by-card, one at a time"
+              title={t("prayerMode.mode.detailed")}
+              description={t("prayerMode.mode.detailedDesc")}
               testId="btn-mode-detailed"
             />
             <ModeCard
               selected={mode === "compact"}
               onClick={() => setMode("compact")}
-              title="Compact"
-              description="See all requests at a glance, grouped together"
+              title={t("prayerMode.mode.compact")}
+              description={t("prayerMode.mode.compactDesc")}
               testId="btn-mode-compact"
             />
           </div>
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Organize By</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("prayerMode.organizeBy")}</h3>
           <div className="grid grid-cols-2 gap-3">
             <ModeCard
               selected={orgType === "priority"}
               onClick={() => setOrgType("priority")}
-              title="Priority"
-              description="Urgent requests first"
+              title={t("prayerMode.org.priority")}
+              description={t("prayerMode.org.priorityDesc")}
               testId="btn-org-priority"
             />
             <ModeCard
               selected={orgType === "category"}
               onClick={() => setOrgType("category")}
-              title="Category"
-              description="Grouped by prayer topic"
+              title={t("prayerMode.org.category")}
+              description={t("prayerMode.org.categoryDesc")}
               testId="btn-org-category"
             />
           </div>
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Show Me</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("prayerMode.showMe")}</h3>
           <div className="space-y-2">
-            {(
-              [
-                ["all_active", "All active & follow-up requests"],
-                ["urgent_only", "Urgent requests only"],
-                ["important_urgent", "Important & urgent"],
-                ["not_yet_prayed", "Not yet prayed (by me)"],
-                ["already_praying", "Requests I'm already praying for"],
-                ["created_by_me", "My own prayer requests"],
-                ["anonymous", "Anonymous requests"],
-                ["recent_updates", "Recently updated (last 7 days)"],
-                ["by_category", "Specific category"],
-              ] as [FilterType, string][]
-            ).map(([value, label]) => (
+            {FILTER_OPTIONS.map(([value, label]) => (
               <button
                 key={value}
                 onClick={() => setFilter(value)}
@@ -180,14 +184,14 @@ function SetupPhase({
 
         {filter === "by_category" && categories && categories.length > 0 && (
           <section className="space-y-3 -mt-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose Category</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("prayerMode.chooseCategory")}</h3>
             <select
               value={selectedCategoryId}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
               className="w-full px-4 py-3 rounded-2xl border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               data-testid="select-category"
             >
-              <option value="">All categories</option>
+              <option value="">{t("prayerMode.allCategories")}</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.icon ? `${cat.icon} ` : ""}{cat.name}
@@ -203,7 +207,7 @@ function SetupPhase({
           className="w-full h-14 rounded-full text-base font-semibold shadow-lg shadow-primary/20"
           data-testid="btn-start-session"
         >
-          {isLoading ? "Starting…" : "Start Praying →"}
+          {isLoading ? t("prayerMode.starting") : t("prayerMode.startPraying")}
         </Button>
       </div>
     </div>
@@ -245,15 +249,16 @@ function ModeCard({
 
 function EmptyState({ groupId, onBack }: { groupId: string; onBack: () => void }) {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 text-center space-y-6">
       <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center mx-auto">
         <BookOpen className="w-8 h-8 text-muted-foreground" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-xl font-bold text-foreground">No Active Prayer Requests</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("prayerMode.empty.title")}</h2>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-          There are no active prayer requests in this group right now.
+          {t("prayerMode.empty.desc")}
         </p>
       </div>
       <div className="flex flex-col gap-3 w-full max-w-xs">
@@ -262,7 +267,7 @@ function EmptyState({ groupId, onBack }: { groupId: string; onBack: () => void }
           className="rounded-full"
           data-testid="btn-empty-add"
         >
-          <Plus className="w-4 h-4 mr-2" /> Add Prayer Request
+          <Plus className="w-4 h-4 mr-2" /> {t("prayerMode.empty.addRequest")}
         </Button>
         <Button
           variant="outline"
@@ -270,10 +275,10 @@ function EmptyState({ groupId, onBack }: { groupId: string; onBack: () => void }
           className="rounded-full"
           data-testid="btn-empty-history"
         >
-          <History className="w-4 h-4 mr-2" /> View Prayer History
+          <History className="w-4 h-4 mr-2" /> {t("prayerMode.empty.viewHistory")}
         </Button>
         <Button variant="ghost" onClick={onBack} className="rounded-full text-muted-foreground">
-          Back to Group
+          {t("prayerMode.empty.backToGroup")}
         </Button>
       </div>
     </div>
@@ -301,7 +306,7 @@ function groupByCategory(requests: SessionRequest[]) {
 
   const result = [...groups.values()];
   if (uncategorized.length > 0) {
-    result.push({ name: "Uncategorized", color: null, icon: null, items: uncategorized });
+    result.push({ name: "__uncategorized__", color: null, icon: null, items: uncategorized });
   }
   return result;
 }
@@ -321,13 +326,14 @@ function CompactPhase({
   const [prayedIds, setPrayedIds] = useState<Set<string>>(new Set());
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [showExit, setShowExit] = useState(false);
+  const { t } = useTranslation();
   const markPrayedMutation = useMarkPrayed();
 
   const byCategory = session.organizationType === "category";
 
   const groups = byCategory
     ? groupByCategory(session.requests)
-    : [{ name: "All Requests", color: null, icon: null, items: session.requests }];
+    : [{ name: "__all__", color: null, icon: null, items: session.requests }];
 
   const totalUrgent = session.requests.filter((r) => r.urgency === "urgent").length;
 
@@ -359,9 +365,9 @@ function CompactPhase({
       {showExit && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-6">
           <div className="bg-card border border-border rounded-3xl p-6 space-y-4 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-foreground">End Prayer Session?</h3>
+            <h3 className="text-lg font-bold text-foreground">{t("prayerMode.endSession")}</h3>
             <p className="text-sm text-muted-foreground">
-              Your progress will be saved. You can start another session any time.
+              {t("prayerMode.endSessionDesc")}
             </p>
             <div className="flex gap-3">
               <Button
@@ -370,7 +376,7 @@ function CompactPhase({
                 onClick={() => setShowExit(false)}
                 data-testid="btn-exit-cancel"
               >
-                Keep Praying
+                {t("prayerMode.keepPraying")}
               </Button>
               <Button
                 className="flex-1 rounded-full"
@@ -378,7 +384,7 @@ function CompactPhase({
                 disabled={isCompleting}
                 data-testid="btn-exit-confirm"
               >
-                {isCompleting ? "Saving…" : "End Session"}
+                {isCompleting ? t("prayerMode.saving") : t("prayerMode.endSessionBtn")}
               </Button>
             </div>
           </div>
@@ -390,16 +396,16 @@ function CompactPhase({
           <button
             onClick={() => setShowExit(true)}
             className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Exit session"
+            aria-label={t("prayerMode.exitSession")}
             data-testid="btn-compact-exit"
           >
             <X className="w-4 h-4" />
           </button>
           <div>
-            <p className="text-sm font-bold text-foreground">Compact Prayer</p>
+            <p className="text-sm font-bold text-foreground">{t("prayerMode.compactPrayer")}</p>
             <p className="text-xs text-muted-foreground">
-              {prayedIds.size}/{session.requests.length} prayed
-              {totalUrgent > 0 ? ` · ${totalUrgent} urgent` : ""}
+              {prayedIds.size}/{session.requests.length} {t("prayerMode.prayed")}
+              {totalUrgent > 0 ? ` · ${totalUrgent} ${t("prayerMode.urgent")}` : ""}
             </p>
           </div>
         </div>
@@ -409,7 +415,7 @@ function CompactPhase({
           className="rounded-full text-sm h-9"
           data-testid="btn-compact-done"
         >
-          {isCompleting ? "Saving…" : "Done Praying"}
+          {isCompleting ? t("prayerMode.saving") : t("prayerMode.donePraying")}
         </Button>
       </header>
 
@@ -417,7 +423,7 @@ function CompactPhase({
         {groups.map((group) => {
           const urgentInGroup = group.items.filter((r) => r.urgency === "urgent");
           const isOpen = !byCategory || expanded.has(group.name);
-          const focus = prayerFocusSummary(group.items);
+          const focus = prayerFocusSummary(group.items, (n) => t("prayerMode.andMore", { count: n }));
 
           return (
             <div key={group.name} className="bg-card border border-border rounded-3xl overflow-hidden">
@@ -435,11 +441,19 @@ function CompactPhase({
                     />
                   )}
                   <div>
-                    <p className="font-semibold text-foreground text-sm">{group.name}</p>
+                    <p className="font-semibold text-foreground text-sm">
+                      {group.name === "__all__"
+                        ? t("prayerMode.allRequests")
+                        : group.name === "__uncategorized__"
+                          ? t("prayerMode.uncategorized")
+                          : group.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      {group.items.length} request{group.items.length !== 1 ? "s" : ""}
+                      {group.items.length === 1
+                        ? t("prayerMode.requestCount_one", { count: 1 })
+                        : t("prayerMode.requestCount_other", { count: group.items.length })}
                       {urgentInGroup.length > 0 && (
-                        <span className="text-red-400 ml-1.5">· {urgentInGroup.length} urgent</span>
+                        <span className="text-red-400 ml-1.5">· {urgentInGroup.length} {t("prayerMode.urgent")}</span>
                       )}
                     </p>
                     {focus && !isOpen && (
@@ -457,7 +471,7 @@ function CompactPhase({
               {byCategory && !isOpen && focus && (
                 <div className="px-4 pb-3 -mt-1">
                   <p className="text-xs text-muted-foreground italic">
-                    <span className="font-semibold not-italic text-muted-foreground">Suggested focus: </span>
+                    <span className="font-semibold not-italic text-muted-foreground">{t("prayerMode.suggestedFocus")}</span>
                     {focus}
                   </p>
                 </div>
@@ -468,7 +482,7 @@ function CompactPhase({
                   {byCategory && focus && (
                     <div className="px-4 py-2 bg-primary/5">
                       <p className="text-xs text-primary/80">
-                        <span className="font-semibold">Suggested focus: </span>
+                        <span className="font-semibold">{t("prayerMode.suggestedFocus")}</span>
                         {focus}
                       </p>
                     </div>
@@ -476,7 +490,7 @@ function CompactPhase({
                   {urgentInGroup.length > 0 && (
                     <div className="px-4 py-2 bg-red-500/5">
                       <p className="text-xs font-semibold text-red-400 mb-2 flex items-center gap-1">
-                        <Flame className="w-3 h-3" /> Urgent
+                        <Flame className="w-3 h-3" /> {t("requests.urgency.urgent")}
                       </p>
                       <div className="space-y-2">
                         {urgentInGroup.map((req) => (
@@ -505,7 +519,7 @@ function CompactPhase({
                       ))}
                     {group.items.filter((r) => r.urgency !== "urgent").length === 0 &&
                       urgentInGroup.length > 0 && (
-                        <p className="text-xs text-muted-foreground italic">All requests in this group are urgent.</p>
+                        <p className="text-xs text-muted-foreground italic">{t("prayerMode.allUrgent")}</p>
                       )}
                   </div>
                 </div>
@@ -531,13 +545,14 @@ function CompactRequestRow({
   onMarkPrayed: () => void;
   isMarking: boolean;
 }) {
+  const { t } = useTranslation();
   const displayName = req.prayerPersonName ?? (req.prayerPersonInitials ? `${req.prayerPersonInitials}.` : null);
   return (
     <div className="flex items-start gap-3 py-1">
       <button
         onClick={onMarkPrayed}
         disabled={prayed || isMarking}
-        aria-label={prayed ? "Prayed" : "Mark as prayed"}
+        aria-label={prayed ? t("prayerMode.prayed") : t("prayerMode.markPrayed")}
         className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
           prayed
             ? "border-primary bg-primary"
@@ -552,7 +567,7 @@ function CompactRequestRow({
           {req.title}
         </p>
         {displayName && (
-          <p className="text-xs text-muted-foreground">For {displayName}</p>
+          <p className="text-xs text-muted-foreground">{t("prayerMode.for")} {displayName}</p>
         )}
         {req.latestUpdate && (
           <p className="text-xs text-primary/70 mt-0.5 italic truncate">"{req.latestUpdate}"</p>
@@ -563,11 +578,11 @@ function CompactRequestRow({
   );
 }
 
-function prayerFocusSummary(items: SessionRequest[]): string {
+function prayerFocusSummary(items: SessionRequest[], andMore: (n: number) => string): string {
   const titles = items.slice(0, 3).map((r) => r.title);
   if (titles.length === 0) return "";
   const joined = titles.join(", ");
-  return items.length > 3 ? `${joined} and ${items.length - 3} more` : joined;
+  return items.length > 3 ? `${joined} ${andMore(items.length - 3)}` : joined;
 }
 
 // ─── Detailed Phase ───────────────────────────────────────────────────────────
@@ -588,6 +603,7 @@ function DetailedPhase({
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [showExit, setShowExit] = useState(false);
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const markPrayedMutation = useMarkPrayed();
   const markSkippedMutation = useMarkSkipped();
@@ -635,7 +651,7 @@ function DetailedPhase({
   if (!current) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">No requests in this session.</p>
+        <p className="text-muted-foreground">{t("prayerMode.noRequests")}</p>
       </div>
     );
   }
@@ -682,7 +698,7 @@ function DetailedPhase({
             <UrgencyBadge urgency={current.urgency} />
             {current.status === "follow_up" && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold">
-                Follow-up
+                {t("requests.status.follow_up")}
               </span>
             )}
           </div>
@@ -695,7 +711,7 @@ function DetailedPhase({
                   {(current.prayerPersonInitials ?? current.prayerPersonName ?? "?").slice(0, 2).toUpperCase()}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {current.prayerPersonName ? `Praying for ${current.prayerPersonName}` : `Praying for ${current.prayerPersonInitials}`}
+                  {t("prayerMode.prayingFor", { name: current.prayerPersonName ?? current.prayerPersonInitials })}
                 </p>
               </div>
             )}
@@ -714,7 +730,7 @@ function DetailedPhase({
 
             {current.latestUpdate && (
               <div className="border-l-2 border-primary/40 pl-4">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Latest Update</p>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">{t("prayerMode.latestUpdate")}</p>
                 <p className="text-sm text-foreground leading-relaxed italic">"{current.latestUpdate}"</p>
               </div>
             )}
@@ -728,10 +744,10 @@ function DetailedPhase({
               )}
               <span className="flex items-center gap-1">
                 <Users className="w-3 h-3" />
-                {current.commitmentCount} praying
+                {current.commitmentCount} {t("prayerMode.praying")}
               </span>
               <span>
-                Added {new Date(current.createdAt).toLocaleDateString()}
+                {t("prayerMode.added")} {new Date(current.createdAt).toLocaleDateString()}
               </span>
             </div>
           </div>
@@ -749,10 +765,10 @@ function DetailedPhase({
             >
               {isPrayed ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Prayed ✓
+                  <CheckCircle2 className="w-4 h-4 mr-2" /> {t("prayerMode.prayedCheck")}
                 </>
               ) : (
-                "🙏 Mark as Prayed"
+                t("prayerMode.markAsPrayed")
               )}
             </Button>
 
@@ -764,7 +780,7 @@ function DetailedPhase({
                 className="flex-1 h-11 rounded-full font-semibold text-muted-foreground hover:text-foreground"
                 data-testid="btn-skip"
               >
-                Skip
+                {t("prayerMode.skip")}
               </Button>
               <Button
                 onClick={handleNext}
@@ -774,10 +790,10 @@ function DetailedPhase({
                 data-testid="btn-next"
               >
                 {isLast ? (
-                  isCompleting ? "Finishing…" : "Finish Session"
+                  isCompleting ? t("prayerMode.finishing") : t("prayerMode.finishSession")
                 ) : (
                   <>
-                    Next <ArrowRight className="w-4 h-4 ml-1" />
+                    {t("prayerMode.next")} <ArrowRight className="w-4 h-4 ml-1" />
                   </>
                 )}
               </Button>
@@ -790,7 +806,7 @@ function DetailedPhase({
               className="w-full text-center text-xs text-muted-foreground hover:text-foreground py-2"
               data-testid="btn-prev"
             >
-              ← Previous request
+              {t("prayerMode.previousRequest")}
             </button>
           )}
         </div>
@@ -800,9 +816,9 @@ function DetailedPhase({
       {showExit && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
           <div className="bg-card border border-border rounded-3xl p-6 max-w-sm w-full space-y-5">
-            <h3 className="font-bold text-foreground text-lg">Exit Prayer Session?</h3>
+            <h3 className="font-bold text-foreground text-lg">{t("prayerMode.exitSessionTitle")}</h3>
             <p className="text-sm text-muted-foreground">
-              Your progress is already saved — {prayedIds.size} request{prayedIds.size !== 1 ? "s" : ""} marked as prayed. You can return any time.
+              {t("prayerMode.exitSessionDesc", { count: prayedIds.size })}
             </p>
             <div className="flex gap-3">
               <Button
@@ -811,7 +827,7 @@ function DetailedPhase({
                 onClick={() => setShowExit(false)}
                 data-testid="btn-exit-cancel"
               >
-                Keep Praying
+                {t("prayerMode.keepPraying")}
               </Button>
               <Button
                 variant="destructive"
@@ -819,7 +835,7 @@ function DetailedPhase({
                 onClick={() => setLocation(`/app/groups/${groupId}`)}
                 data-testid="btn-exit-confirm"
               >
-                Exit
+                {t("prayerMode.exit")}
               </Button>
             </div>
           </div>
@@ -841,6 +857,7 @@ function CompletePhase({
   onStartAnother: () => void;
 }) {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const minutes = Math.floor(summary.durationSeconds / 60);
   const seconds = summary.durationSeconds % 60;
@@ -856,25 +873,25 @@ function CompletePhase({
             <CheckCircle2 className="w-10 h-10 text-green-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-foreground">Session Complete!</h1>
+            <h1 className="text-2xl font-extrabold text-foreground">{t("prayerMode.complete.title")}</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              You prayed through {summary.prayedCount} of {summary.totalCount} requests.
+              {t("prayerMode.complete.subtitle", { prayed: summary.prayedCount, total: summary.totalCount })}
             </p>
           </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <StatCard label="Prayed" value={String(summary.prayedCount)} />
-          <StatCard label="Duration" value={durationLabel} />
-          <StatCard label="Categories" value={String(summary.categoriesCovered.length)} />
+          <StatCard label={t("prayerMode.complete.stat.prayed")} value={String(summary.prayedCount)} />
+          <StatCard label={t("prayerMode.complete.stat.duration")} value={durationLabel} />
+          <StatCard label={t("prayerMode.complete.stat.categories")} value={String(summary.categoriesCovered.length)} />
         </div>
 
         {/* Categories covered */}
         {summary.categoriesCovered.length > 0 && (
           <div className="bg-card border border-border rounded-3xl p-5 space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Topics Covered
+              {t("prayerMode.complete.topicsCovered")}
             </h3>
             <div className="flex flex-wrap gap-2">
               {summary.categoriesCovered.map((cat) => (
@@ -893,7 +910,7 @@ function CompletePhase({
         {summary.prayedRequests.length > 0 && (
           <div className="bg-card border border-border rounded-3xl p-5 space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Prayed For
+              {t("prayerMode.complete.prayedFor")}
             </h3>
             <ul className="space-y-2">
               {summary.prayedRequests.map((req) => (
@@ -913,7 +930,7 @@ function CompletePhase({
             className="w-full h-12 rounded-full font-semibold shadow-lg shadow-primary/20"
             data-testid="btn-return-group"
           >
-            Return to Group
+            {t("prayerMode.complete.returnToGroup")}
           </Button>
           <Button
             variant="outline"
@@ -921,7 +938,7 @@ function CompletePhase({
             className="w-full h-12 rounded-full font-semibold"
             data-testid="btn-start-another"
           >
-            Start Another Session
+            {t("prayerMode.complete.startAnother")}
           </Button>
         </div>
       </div>

@@ -27,5 +27,8 @@ description: Key architectural decisions and wiring details for the Warrior Pray
 - Wouter for routing; base path from `import.meta.env.BASE_URL`
 - queryClient lives in `src/lib/queryClient.ts`
 - App shell: mobile bottom nav + desktop sidebar at /app/* routes
+- Clerk sign-out: use `useClerk` from `@clerk/react`, call `signOut({ redirectUrl: "/" })` — NOT `useSignOut` from `@clerk/clerk-react` (that package doesn't exist in this project)
+- `prayerFocusSummary(items, andMore)` — second arg is `(n: number) => string` for localized "and N more"
+- `UserAvatar` and `ConnectedAccountsList` components do NOT exist — use inline implementations in profile.tsx
 
 **Why:** Spec requires private, intimate feel — dark theme enforces this. No light mode to avoid distraction from the prayer focus.

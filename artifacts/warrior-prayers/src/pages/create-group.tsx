@@ -9,11 +9,42 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
+
+function ToggleRow({
+  id,
+  label,
+  description,
+  checked,
+  onCheckedChange,
+}: {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+  onCheckedChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="space-y-0.5 flex-1">
+        <Label htmlFor={id} className="text-foreground font-medium cursor-pointer">{label}</Label>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <Switch
+        id={id}
+        data-testid={`switch-${id}`}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+      />
+    </div>
+  );
+}
 
 export default function CreateGroup() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const createGroup = useCreateGroup();
 
   const [name, setName] = useState("");
@@ -55,8 +86,7 @@ export default function CreateGroup() {
         },
         onError: () => {
           toast({
-            title: "Failed to create group",
-            description: "Something went wrong. Please try again.",
+            title: t("createGroup.error"),
             variant: "destructive",
           });
         },
@@ -77,126 +107,126 @@ export default function CreateGroup() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-extrabold text-foreground">Create Prayer Group</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Set up a new private prayer circle</p>
+          <h1 className="text-2xl font-extrabold text-foreground">{t("createGroup.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{t("createGroup.subtitle")}</p>
         </div>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <section className="bg-card border border-border rounded-3xl p-6 space-y-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Group Details</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("group.form.groupDetails")}</h2>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Group Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="name">{t("group.form.name")} <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               data-testid="input-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Morning Warriors"
+              placeholder={t("group.form.namePlaceholder")}
               className="rounded-xl h-12"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("group.form.description")}</Label>
             <Textarea
               id="description"
               data-testid="input-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this group about?"
+              placeholder={t("group.form.descPlaceholder")}
               className="rounded-xl min-h-[100px] resize-none"
             />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="churchName">Church / Ministry</Label>
+              <Label htmlFor="churchName">{t("group.form.churchMinistry")}</Label>
               <Input
                 id="churchName"
                 data-testid="input-church-name"
                 value={churchName}
                 onChange={(e) => setChurchName(e.target.value)}
-                placeholder="e.g. Grace Church"
+                placeholder={t("group.form.churchPlaceholder")}
                 className="rounded-xl h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">{t("group.form.city")}</Label>
               <Input
                 id="city"
                 data-testid="input-city"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="e.g. São Paulo"
+                placeholder={t("group.form.cityPlaceholder")}
                 className="rounded-xl h-12"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="verse">Scripture Verse</Label>
+            <Label htmlFor="verse">{t("group.form.verse")}</Label>
             <Input
               id="verse"
               data-testid="input-verse"
               value={verse}
               onChange={(e) => setVerse(e.target.value)}
-              placeholder="e.g. Philippians 4:6"
+              placeholder={t("group.form.versePlaceholder")}
               className="rounded-xl h-12"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Group Image URL</Label>
+            <Label htmlFor="imageUrl">{t("group.form.imageUrl")}</Label>
             <Input
               id="imageUrl"
               data-testid="input-image-url"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
+              placeholder={t("group.form.imageUrlPlaceholder")}
               className="rounded-xl h-12"
             />
           </div>
         </section>
 
         <section className="bg-card border border-border rounded-3xl p-6 space-y-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Privacy Settings</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("group.form.privacySettings")}</h2>
 
           <ToggleRow
             id="hidePrayerPersonNames"
-            label="Hide prayer person names"
-            description="Members won't see who a prayer request is for"
+            label={t("group.form.hidePrayerNames")}
+            description={t("group.form.hidePrayerNamesDesc")}
             checked={hidePrayerPersonNames}
             onCheckedChange={setHidePrayerPersonNames}
           />
           <ToggleRow
             id="allowCustomCategories"
-            label="Allow custom categories"
-            description="Members can create their own prayer categories"
+            label={t("group.form.allowCustomCategories")}
+            description={t("group.form.allowCustomCategoriesDesc")}
             checked={allowCustomCategories}
             onCheckedChange={setAllowCustomCategories}
           />
           <ToggleRow
             id="allowComments"
-            label="Allow comments on prayer requests"
-            description="Members can leave comments and encouragement"
+            label={t("group.form.allowComments")}
+            description={t("group.form.allowCommentsDesc")}
             checked={allowComments}
             onCheckedChange={setAllowComments}
           />
           <ToggleRow
             id="allowAnonymousRequests"
-            label="Allow anonymous prayer requests"
-            description="Members can submit requests without showing their name"
+            label={t("group.form.allowAnonymous")}
+            description={t("group.form.allowAnonymousDesc")}
             checked={allowAnonymousRequests}
             onCheckedChange={setAllowAnonymousRequests}
           />
           {allowAnonymousRequests && (
             <ToggleRow
               id="adminsCanViewAnonymousAuthors"
-              label="Admins can see anonymous authors"
-              description="Admins and moderators can view who submitted anonymous requests"
+              label={t("group.form.adminsViewAnonymous")}
+              description={t("group.form.adminsViewAnonymousDesc")}
               checked={adminsCanViewAnonymousAuthors}
               onCheckedChange={setAdminsCanViewAnonymousAuthors}
             />
@@ -210,38 +240,9 @@ export default function CreateGroup() {
           className="w-full h-14 rounded-full text-base font-semibold shadow-lg shadow-primary/20"
         >
           <Users className="w-5 h-5 mr-2" />
-          {createGroup.isPending ? "Creating…" : "Create Prayer Group"}
+          {createGroup.isPending ? t("createGroup.creating") : t("createGroup.btn")}
         </Button>
       </form>
-    </div>
-  );
-}
-
-function ToggleRow({
-  id,
-  label,
-  description,
-  checked,
-  onCheckedChange,
-}: {
-  id: string;
-  label: string;
-  description: string;
-  checked: boolean;
-  onCheckedChange: (v: boolean) => void;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="space-y-0.5 flex-1">
-        <Label htmlFor={id} className="text-foreground font-medium cursor-pointer">{label}</Label>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </div>
-      <Switch
-        id={id}
-        data-testid={`switch-${id}`}
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-      />
     </div>
   );
 }

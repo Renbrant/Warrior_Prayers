@@ -54,11 +54,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/app/dashboard", testId: "home" },
-    { icon: Users, label: "Groups", href: "/app/groups", testId: "groups" },
-    { icon: Heart, label: "Pray", href: "/app/pray", testId: "pray" },
-    { icon: Bell, label: "Notifications", href: "/app/notifications", testId: "notifications", badge: unreadCount },
-    { icon: User, label: "Profile", href: "/app/profile", testId: "profile" },
+    { icon: Home, label: t("nav.home"), href: "/app/dashboard", testId: "home" },
+    { icon: Users, label: t("nav.groups"), href: "/app/groups", testId: "groups" },
+    { icon: Heart, label: t("nav.pray"), href: "/app/pray", testId: "pray" },
+    { icon: Bell, label: t("nav.notifications"), href: "/app/notifications", testId: "notifications", badge: unreadCount },
+    { icon: User, label: t("nav.profile"), href: "/app/profile", testId: "profile" },
   ];
 
   return (
@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="p-6">
           <Link href="/app/dashboard" className="text-xl font-bold text-primary flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 14c-1.5 0-3-1.5-3-3s3-5 3-5 3 3.5 3 5-1.5 3-3 3z"/></svg>
-            Warrior Prayers
+            {t("app.name")}
           </Link>
         </div>
         <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
@@ -99,7 +99,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {myGroups.length > 0 && (
             <div className="pt-4">
               <p className="px-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                My Groups
+                {t("nav.myGroups")}
               </p>
               {(myGroups as GroupSummary[]).map((g) => (
                 <Link
@@ -127,7 +127,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             data-testid="link-profile-footer"
           >
             <User className="w-5 h-5" />
-            <span>{t("profile.title", "Profile & Settings")}</span>
+            <span>{t("nav.profileSettings")}</span>
           </Link>
           <a
             href="https://www.paypal.com/pool/9pW16FpIDW?sr=wccr"
@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             data-testid="link-donate"
           >
             <HandCoins className="w-5 h-5 shrink-0" />
-            <span>Apoiar o projeto</span>
+            <span>{t("nav.supportProject")}</span>
           </a>
         </div>
       </aside>

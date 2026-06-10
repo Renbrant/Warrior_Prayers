@@ -11,17 +11,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
+function useTimeAgo() {
+  const { t } = useTranslation();
+  return (iso: string): string => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return t("notifications.justNow");
+    if (mins < 60) return t("notifications.minutesAgo", { count: mins });
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return t("notifications.hoursAgo", { count: hrs });
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return t("notifications.daysAgo", { count: days });
+    return new Date(iso).toLocaleDateString();
+  };
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -37,6 +41,8 @@ export default function Notifications() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const timeAgo = useTimeAgo();
 
   const { data, isLoading, isError, refetch } = useListNotifications({
     query: { queryKey: getListNotificationsQueryKey() },
@@ -55,7 +61,7 @@ export default function Notifications() {
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: getListNotificationsQueryKey() });
         },
-        onError: () => toast({ title: "Failed to mark as read", variant: "destructive" }),
+        onError: () => toast({ title: t("notifications.failedMarkRead"), variant: "destructive" }),
       },
     );
   };
@@ -64,9 +70,9 @@ export default function Notifications() {
     markAllRead.mutate(undefined, {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: getListNotificationsQueryKey() });
-        toast({ title: "All notifications marked as read" });
+        toast({ title: t("notifications.allMarkedRead") });
       },
-      onError: () => toast({ title: "Failed to mark all as read", variant: "destructive" }),
+      onError: () => toast({ title: t("notifications.failedMarkAllRead"), variant: "destructive" }),
     });
   };
 
@@ -84,14 +90,14 @@ export default function Notifications() {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-            <Bell className="w-5 h-5 text-primary" /> Notifications
+            <Bell className="w-5 h-5 text-primary" /> {t("notifications.title")}
             {unreadCount > 0 && (
               <span className="ml-1 inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
           </h1>
-          <p className="text-sm text-muted-foreground">Your activity feed</p>
+          <p className="text-sm text-muted-foreground">{t("notifications.activityFeed")}</p>
         </div>
         {unreadCount > 0 && (
           <Button
@@ -103,7 +109,7 @@ export default function Notifications() {
             data-testid="btn-mark-all-read"
           >
             <CheckCheck className="w-4 h-4" />
-            Mark all read
+            {t("notifications.markAllRead")}
           </Button>
         )}
       </header>
@@ -119,15 +125,15 @@ export default function Notifications() {
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
             <Bell className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground font-medium">Could not load notifications</p>
-          <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+          <p className="text-muted-foreground font-medium">{t("notifications.failedLoad")}</p>
+          <p className="text-sm text-muted-foreground">{t("notifications.failedLoadDesc")}</p>
           <Button
             variant="outline"
             onClick={() => void refetch()}
             className="rounded-full"
             data-testid="btn-retry"
           >
-            Try Again
+            {t("common.tryAgain")}
           </Button>
         </div>
       ) : notifications.length === 0 ? (
@@ -135,16 +141,16 @@ export default function Notifications() {
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
             <Bell className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground font-medium">No notifications yet</p>
+          <p className="text-muted-foreground font-medium">{t("notifications.noNotifications")}</p>
           <p className="text-sm text-muted-foreground">
-            You'll be notified about group invitations, new prayer requests, and more.
+            {t("notifications.noNotificationsDesc")}
           </p>
           <Button
             variant="ghost"
             onClick={() => setLocation("/app/dashboard")}
             className="rounded-full"
           >
-            Back to Dashboard
+            {t("common.backToDashboard")}
           </Button>
         </div>
       ) : (
@@ -185,7 +191,7 @@ export default function Notifications() {
                     onClick={() => handleMarkRead(n.id)}
                     disabled={markRead.isPending}
                     data-testid={`btn-mark-read-${n.id}`}
-                    title="Mark as read"
+                    title={t("notifications.markAsRead")}
                   >
                     <Check className="w-4 h-4" />
                   </Button>

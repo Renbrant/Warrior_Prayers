@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 function ToggleRow({
   id,
@@ -55,6 +56,7 @@ export default function CreatePrayerRequest() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const { data: group } = useGetGroup(groupId!, { query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId } });
   const { data: categories = [] } = useListCategories(groupId!, { query: { queryKey: getListCategoriesQueryKey(groupId!), enabled: !!groupId } });
@@ -89,12 +91,12 @@ export default function CreatePrayerRequest() {
       },
       {
         onSuccess: (created) => {
-          queryClient.invalidateQueries({ queryKey: getListPrayerRequestsQueryKey(groupId!) });
-          toast({ title: "Prayer request created", description: "Your request has been added." });
+          void queryClient.invalidateQueries({ queryKey: getListPrayerRequestsQueryKey(groupId!) });
+          toast({ title: t("createRequest.successTitle"), description: t("createRequest.successDesc") });
           setLocation(`/app/groups/${groupId}/requests/${created.id}`);
         },
         onError: () => {
-          toast({ title: "Error", description: "Failed to create prayer request.", variant: "destructive" });
+          toast({ title: t("common.error"), description: t("createRequest.error"), variant: "destructive" });
         },
       },
     );
@@ -111,32 +113,32 @@ export default function CreatePrayerRequest() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-2xl font-bold">New Prayer Request</h1>
+        <h1 className="text-2xl font-bold">{t("createRequest.title")}</h1>
       </div>
 
       <div className="flex items-start gap-2 p-3 bg-primary/10 border border-primary/20 rounded-2xl text-sm">
         <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <p className="text-muted-foreground">
-          The person's name and description are encrypted and only readable by group members.
+          {t("createRequest.privacyNote")}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <section className="bg-card border border-border rounded-3xl p-6 space-y-5">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Request Details
+            {t("createRequest.requestDetails")}
           </h2>
 
           <div className="space-y-2">
             <Label htmlFor="title">
-              Title <span className="text-red-400">*</span>
+              {t("createRequest.titleField")} <span className="text-red-400">*</span>
             </Label>
             <Input
               id="title"
               data-testid="input-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Brief description of the prayer need"
+              placeholder={t("createRequest.titlePlaceholder")}
               required
               className="rounded-xl h-12"
             />
@@ -144,35 +146,35 @@ export default function CreatePrayerRequest() {
 
           <div className="space-y-2">
             <Label htmlFor="prayerPersonName">
-              Person Receiving Prayer{" "}
-              <span className="text-xs text-muted-foreground">(encrypted)</span>
+              {t("createRequest.personName")}{" "}
+              <span className="text-xs text-muted-foreground">{t("createRequest.personNameEncrypted")}</span>
             </Label>
             <Input
               id="prayerPersonName"
               data-testid="input-person-name"
               value={prayerPersonName}
               onChange={(e) => setPrayerPersonName(e.target.value)}
-              placeholder="Name of person to pray for"
+              placeholder={t("createRequest.personNamePlaceholder")}
               className="rounded-xl h-12"
             />
             {group?.hidePrayerPersonNames && (
               <p className="text-xs text-muted-foreground">
-                Only initials will be shown to members in this group.
+                {t("createRequest.hiddenInitials")}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">
-              Description{" "}
-              <span className="text-xs text-muted-foreground">(encrypted)</span>
+              {t("createRequest.description")}{" "}
+              <span className="text-xs text-muted-foreground">{t("createRequest.personNameEncrypted")}</span>
             </Label>
             <Textarea
               id="description"
               data-testid="input-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Share more details about the prayer need..."
+              placeholder={t("createRequest.descriptionPlaceholder")}
               rows={4}
               className="rounded-xl resize-none"
             />
@@ -180,13 +182,13 @@ export default function CreatePrayerRequest() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>{t("createRequest.category")}</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger className="rounded-xl h-12" data-testid="select-category">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No category</SelectItem>
+                  <SelectItem value="none">{t("createRequest.noCategory")}</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
@@ -197,22 +199,22 @@ export default function CreatePrayerRequest() {
             </div>
 
             <div className="space-y-2">
-              <Label>Urgency</Label>
+              <Label>{t("createRequest.urgency")}</Label>
               <Select value={urgency} onValueChange={setUrgency}>
                 <SelectTrigger className="rounded-xl h-12" data-testid="select-urgency">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="important">Important</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="normal">{t("requests.urgency.normal")}</SelectItem>
+                  <SelectItem value="important">{t("requests.urgency.important")}</SelectItem>
+                  <SelectItem value="urgent">{t("requests.urgency.urgent")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="importantDate">Important Date</Label>
+            <Label htmlFor="importantDate">{t("createRequest.importantDate")}</Label>
             <Input
               id="importantDate"
               type="date"
@@ -225,14 +227,14 @@ export default function CreatePrayerRequest() {
 
         <section className="bg-card border border-border rounded-3xl p-6 space-y-4">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Privacy
+            {t("createRequest.privacy")}
           </h2>
 
           {group?.allowAnonymousRequests && (
             <ToggleRow
               id="isAnonymous"
-              label="Post anonymously"
-              description="Your name won't be shown to regular members"
+              label={t("createRequest.postAnonymous")}
+              description={t("createRequest.postAnonymousDesc")}
               checked={isAnonymous}
               onCheckedChange={setIsAnonymous}
             />
@@ -240,8 +242,8 @@ export default function CreatePrayerRequest() {
 
           <ToggleRow
             id="allowComments"
-            label="Allow comments"
-            description="Members can leave supportive comments"
+            label={t("createRequest.allowComments")}
+            description={t("createRequest.allowCommentsDesc")}
             checked={allowComments}
             onCheckedChange={setAllowComments}
           />
@@ -253,7 +255,7 @@ export default function CreatePrayerRequest() {
           className="w-full h-12 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
           data-testid="btn-submit"
         >
-          {createRequest.isPending ? "Submitting..." : "Submit Prayer Request"}
+          {createRequest.isPending ? t("createRequest.submitting") : t("createRequest.submitBtn")}
         </Button>
       </form>
     </div>

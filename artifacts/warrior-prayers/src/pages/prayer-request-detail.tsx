@@ -56,6 +56,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslation } from "react-i18next";
 
 const URGENCY_BADGE: Record<string, string> = {
   urgent: "bg-red-500/20 text-red-400 border-red-500/30",
@@ -67,12 +68,6 @@ const LANGUAGE_LABELS: Record<string, string> = {
   en: "English",
   pt: "Português",
   es: "Español",
-};
-
-const LANGUAGE_FROM_LABELS: Record<string, string> = {
-  en: "English",
-  pt: "Portuguese",
-  es: "Spanish",
 };
 
 function formatDate(d: Date | string | null | undefined): string {
@@ -89,6 +84,7 @@ export default function PrayerRequestDetail() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const [commentText, setCommentText] = useState("");
   const [showAddUpdate, setShowAddUpdate] = useState(false);
@@ -143,7 +139,7 @@ export default function PrayerRequestDetail() {
             queryKey: getGetPrayerRequestQueryKey(groupId!, requestId!),
           });
         },
-        onError: () => toast({ title: "Error", description: "Could not update commitment.", variant: "destructive" }),
+        onError: () => toast({ title: t("common.error"), description: t("request.commitError"), variant: "destructive" }),
       },
     );
   };
@@ -158,7 +154,7 @@ export default function PrayerRequestDetail() {
           setCommentText("");
           queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey(groupId!, requestId!) });
         },
-        onError: () => toast({ title: "Error", description: "Could not add comment.", variant: "destructive" }),
+        onError: () => toast({ title: t("common.error"), description: t("request.commentError"), variant: "destructive" }),
       },
     );
   };
@@ -168,7 +164,7 @@ export default function PrayerRequestDetail() {
       { groupId: groupId!, requestId: requestId!, commentId },
       {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey(groupId!, requestId!) }),
-        onError: () => toast({ title: "Error", description: "Could not delete comment.", variant: "destructive" }),
+        onError: () => toast({ title: t("common.error"), description: t("request.deleteCommentError"), variant: "destructive" }),
       },
     );
   };
@@ -201,9 +197,9 @@ export default function PrayerRequestDetail() {
           queryClient.invalidateQueries({ queryKey: getGetPrayerRequestQueryKey(groupId!, requestId!) });
           queryClient.invalidateQueries({ queryKey: getListPrayerRequestsQueryKey(groupId!) });
           queryClient.invalidateQueries({ queryKey: getGetPrayerHistoryQueryKey(groupId!) });
-          toast({ title: "Update added" });
+          toast({ title: t("request.updateAdded") });
         },
-        onError: () => toast({ title: "Error", description: "Could not add update.", variant: "destructive" }),
+        onError: () => toast({ title: t("common.error"), description: t("request.updateError"), variant: "destructive" }),
       },
     );
   };
@@ -228,10 +224,10 @@ export default function PrayerRequestDetail() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPrayerRequestsQueryKey(groupId!) });
-          toast({ title: "Prayer request deleted" });
+          toast({ title: t("request.deleted") });
           setLocation(`/app/groups/${groupId}/requests`);
         },
-        onError: () => toast({ title: "Error", description: "Could not delete request.", variant: "destructive" }),
+        onError: () => toast({ title: t("common.error"), description: t("request.deleteError"), variant: "destructive" }),
       },
     );
   };
@@ -253,7 +249,7 @@ export default function PrayerRequestDetail() {
           });
           setShowingTranslation(true);
         },
-        onError: () => toast({ title: "Error", description: "Could not translate request.", variant: "destructive" }),
+        onError: () => toast({ title: t("common.error"), description: t("request.translateError"), variant: "destructive" }),
       },
     );
   };
@@ -275,7 +271,7 @@ export default function PrayerRequestDetail() {
   if (!request) {
     return (
       <div className="p-8 text-center text-muted-foreground">
-        <p>Prayer request not found.</p>
+        <p>{t("request.notFound")}</p>
       </div>
     );
   }
@@ -314,15 +310,15 @@ export default function PrayerRequestDetail() {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Prayer Request</AlertDialogTitle>
+                <AlertDialogTitle>{t("request.deleteTitle")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the prayer request, comments, and updates.
+                  {t("request.deleteDesc")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-                  Delete
+                  {t("common.delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -338,7 +334,7 @@ export default function PrayerRequestDetail() {
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${URGENCY_BADGE[request.urgency] ?? URGENCY_BADGE.normal}`}
               >
                 {request.urgency === "urgent" && <Flame className="w-3 h-3 mr-1" />}
-                {request.urgency.charAt(0).toUpperCase() + request.urgency.slice(1)}
+                {t(`requests.urgency.${request.urgency}`, request.urgency)}
               </span>
               {request.categoryName && (
                 <span
@@ -354,19 +350,19 @@ export default function PrayerRequestDetail() {
               )}
               {request.status !== "active" && (
                 <span className="text-xs px-2 py-0.5 rounded-full border border-border bg-muted text-muted-foreground capitalize">
-                  {request.status.replace("_", "-")}
+                  {t(`requests.status.${request.status}`, request.status.replace("_", "-"))}
                 </span>
               )}
             </div>
             <h1 className="text-xl font-bold">{displayTitle}</h1>
             {showingTranslation && translation && displayTitle !== request.title && (
               <p className="text-xs text-muted-foreground italic">
-                Original: {request.title}
+                {t("request.original")}: {request.title}
               </p>
             )}
             {displayName && (
               <p className="text-sm text-muted-foreground">
-                For <span className="font-medium text-foreground">{displayName}</span>
+                {t("request.for")} <span className="font-medium text-foreground">{displayName}</span>
               </p>
             )}
           </div>
@@ -382,14 +378,14 @@ export default function PrayerRequestDetail() {
           <div className="flex items-center gap-2 pt-1">
             <span className="text-xs text-primary flex items-center gap-1">
               <Languages className="w-3 h-3" />
-              Translated to {LANGUAGE_FROM_LABELS[translation.targetLanguage]}
-              {translation.cached ? " (cached)" : ""}
+              {t("request.translatedTo", { lang: LANGUAGE_LABELS[translation.targetLanguage] ?? translation.targetLanguage })}
+              {translation.cached ? ` ${t("request.cached")}` : ""}
             </span>
             <button
               onClick={handleHideTranslation}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
             >
-              <X className="w-3 h-3" /> Show original
+              <X className="w-3 h-3" /> {t("request.showOriginal")}
             </button>
           </div>
         )}
@@ -399,16 +395,16 @@ export default function PrayerRequestDetail() {
             request.authorName && isAdmin ? (
               <span className="flex items-center gap-1">
                 <UserX className="w-3 h-3" />
-                Anonymous
-                <span className="text-muted-foreground/60">(admin view: {request.authorName})</span>
+                {t("request.anonymous")}
+                <span className="text-muted-foreground/60">({t("request.adminView")}: {request.authorName})</span>
               </span>
             ) : (
               <span className="flex items-center gap-1">
-                <UserX className="w-3 h-3" /> Anonymous
+                <UserX className="w-3 h-3" /> {t("request.anonymous")}
               </span>
             )
           ) : (
-            request.authorName && <span>By {request.authorName}</span>
+            request.authorName && <span>{t("request.by")} {request.authorName}</span>
           )}
           {request.importantDate && (
             <span className="flex items-center gap-1">
@@ -422,7 +418,9 @@ export default function PrayerRequestDetail() {
           <div className="mt-2 p-3 bg-muted/50 rounded-2xl space-y-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              {request.closureReason === "answered_prayer" ? "Answered Prayer" : "No Longer Needed"}
+              {request.closureReason === "answered_prayer"
+                ? t("request.closureReason.answeredPrayer")
+                : t("request.closureReason.noLongerNeeded")}
             </p>
             {request.answeredTestimony && (
               <p className="text-sm text-foreground/80 whitespace-pre-wrap">{request.answeredTestimony}</p>
@@ -442,12 +440,12 @@ export default function PrayerRequestDetail() {
               data-testid="btn-show-translate"
             >
               <Languages className="w-3.5 h-3.5" />
-              Translate this request
+              {t("request.translateThis")}
             </button>
           ) : (
             <div className="flex items-center gap-2 flex-wrap">
               <Languages className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <span className="text-xs text-muted-foreground">Translate to:</span>
+              <span className="text-xs text-muted-foreground">{t("request.translateTo")}:</span>
               <Select value={selectedLang} onValueChange={setSelectedLang}>
                 <SelectTrigger className="h-7 text-xs rounded-lg w-32 px-2">
                   <SelectValue />
@@ -466,14 +464,18 @@ export default function PrayerRequestDetail() {
                 className="h-7 text-xs rounded-lg px-3"
                 data-testid="btn-translate"
               >
-                {translateRequest.isPending ? "Translating..." : showingTranslation ? "Re-translate" : "Translate"}
+                {translateRequest.isPending
+                  ? t("request.translating")
+                  : showingTranslation
+                    ? t("request.retranslate")
+                    : t("request.translate")}
               </Button>
               {showingTranslation && (
                 <button
                   onClick={handleHideTranslation}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Show original
+                  {t("request.showOriginal")}
                 </button>
               )}
               <button
@@ -497,19 +499,19 @@ export default function PrayerRequestDetail() {
         }`}
         data-testid="btn-commit"
       >
-        <Heart
-          className={`w-4 h-4 ${request.iCommitted ? "fill-primary text-primary" : ""}`}
-        />
-        {request.iCommitted ? "You are praying for this" : "I am praying for this"}
+        <Heart className={`w-4 h-4 ${request.iCommitted ? "fill-primary text-primary" : ""}`} />
+        {request.iCommitted ? t("request.youArePraying") : t("request.iAmPraying")}
         <span className="text-muted-foreground font-normal">
-          · {request.commitmentCount} {request.commitmentCount === 1 ? "person" : "people"} praying
+          · {request.commitmentCount === 1
+            ? t("request.personPraying_one", { count: 1 })
+            : t("request.personPraying_other", { count: request.commitmentCount })}
         </span>
       </button>
 
       {request.updates.length > 0 && (
         <section className="bg-card border border-border rounded-3xl p-5 space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Updates
+            {t("request.updates")}
           </h2>
           <div className="space-y-3">
             {request.updates.map((update) => (
@@ -534,7 +536,7 @@ export default function PrayerRequestDetail() {
             onClick={() => setShowAddUpdate(!showAddUpdate)}
             className="flex items-center justify-between w-full text-sm font-semibold text-muted-foreground"
           >
-            <span>Add Update</span>
+            <span>{t("request.addUpdate")}</span>
             {showAddUpdate ? (
               <ChevronUp className="w-4 h-4" />
             ) : (
@@ -547,23 +549,23 @@ export default function PrayerRequestDetail() {
               <Textarea
                 value={updateText}
                 onChange={(e) => setUpdateText(e.target.value)}
-                placeholder="Share an update on this prayer request..."
+                placeholder={t("request.updatePlaceholder")}
                 rows={3}
                 className="rounded-xl resize-none"
                 data-testid="input-update-text"
               />
 
               <div className="space-y-2">
-                <Label>Change Status</Label>
+                <Label>{t("request.changeStatus")}</Label>
                 <Select value={newStatus} onValueChange={setNewStatus}>
                   <SelectTrigger className="rounded-xl h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="keep">Keep Active</SelectItem>
-                    <SelectItem value="follow_up">Move to Follow-Up</SelectItem>
-                    <SelectItem value="closed">Close Request</SelectItem>
-                    {isAdmin && <SelectItem value="archived">Archive</SelectItem>}
+                    <SelectItem value="keep">{t("request.statusOption.keepActive")}</SelectItem>
+                    <SelectItem value="follow_up">{t("request.statusOption.followUp")}</SelectItem>
+                    <SelectItem value="closed">{t("request.statusOption.close")}</SelectItem>
+                    {isAdmin && <SelectItem value="archived">{t("request.statusOption.archive")}</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
@@ -571,25 +573,25 @@ export default function PrayerRequestDetail() {
               {newStatus === "closed" && (
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label>Closure Reason</Label>
+                    <Label>{t("request.closureReason.label")}</Label>
                     <Select value={closureReason} onValueChange={setClosureReason}>
                       <SelectTrigger className="rounded-xl h-10">
-                        <SelectValue placeholder="Select reason" />
+                        <SelectValue placeholder={t("request.closureReason.placeholder")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="answered_prayer">Answered Prayer 🙏</SelectItem>
-                        <SelectItem value="no_longer_needed">No Longer Needed</SelectItem>
+                        <SelectItem value="answered_prayer">{t("request.closureReason.answeredPrayer")} 🙏</SelectItem>
+                        <SelectItem value="no_longer_needed">{t("request.closureReason.noLongerNeeded")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {closureReason === "answered_prayer" && (
                     <div className="space-y-2">
-                      <Label>Testimony (optional, encrypted)</Label>
+                      <Label>{t("request.testimony")}</Label>
                       <Textarea
                         value={testimony}
                         onChange={(e) => setTestimony(e.target.value)}
-                        placeholder="Share how God answered this prayer..."
+                        placeholder={t("request.testimonyPlaceholder")}
                         rows={3}
                         className="rounded-xl resize-none"
                       />
@@ -598,11 +600,11 @@ export default function PrayerRequestDetail() {
 
                   {closureReason === "no_longer_needed" && (
                     <div className="space-y-2">
-                      <Label>Closing Note (optional, encrypted)</Label>
+                      <Label>{t("request.closingNote")}</Label>
                       <Textarea
                         value={closingNote}
                         onChange={(e) => setClosingNote(e.target.value)}
-                        placeholder="Any closing thoughts..."
+                        placeholder={t("request.closingNotePlaceholder")}
                         rows={2}
                         className="rounded-xl resize-none"
                       />
@@ -617,7 +619,7 @@ export default function PrayerRequestDetail() {
                 className="w-full rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90"
                 data-testid="btn-submit-update"
               >
-                {addUpdate.isPending ? "Submitting..." : "Post Update"}
+                {addUpdate.isPending ? t("request.submitting") : t("request.postUpdate")}
               </Button>
             </form>
           )}
@@ -628,14 +630,14 @@ export default function PrayerRequestDetail() {
         <section className="bg-card border border-border rounded-3xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
             <MessageCircle className="w-4 h-4" />
-            Comments{comments.length > 0 ? ` (${comments.length})` : ""}
+            {t("request.comments")}{comments.length > 0 ? ` (${comments.length})` : ""}
           </h2>
 
           {isCommentsLoading ? (
             <Skeleton className="h-16 rounded-xl" />
           ) : comments.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-2">
-              Be the first to leave an encouraging comment.
+              {t("request.firstComment")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -647,7 +649,7 @@ export default function PrayerRequestDetail() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">{c.comment}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {c.authorName ?? "Member"}{" · "}
+                      {c.authorName ?? t("request.member")}{" · "}
                     </p>
                   </div>
                   {(c.isMyComment || isMod) && (
@@ -668,7 +670,7 @@ export default function PrayerRequestDetail() {
               <Textarea
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Add an encouraging comment..."
+                placeholder={t("request.commentPlaceholder")}
                 rows={2}
                 className="rounded-xl resize-none flex-1"
                 data-testid="input-comment"
@@ -696,21 +698,21 @@ export default function PrayerRequestDetail() {
       <AlertDialog open={pendingClose} onOpenChange={(open) => { if (!open) setPendingClose(false); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Close Prayer Request?</AlertDialogTitle>
+            <AlertDialogTitle>{t("request.closeConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {closureReason === "answered_prayer"
-                ? "This request will be marked as Answered Prayer and closed. Group members who are praying for it will be notified."
-                : "This request will be closed and removed from the active list. This cannot be undone."}
+                ? t("request.closeConfirmAnswered")
+                : t("request.closeConfirmClose")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => { setPendingClose(false); executeAddUpdate(); }}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
               data-testid="btn-confirm-close"
             >
-              {closureReason === "answered_prayer" ? "Mark as Answered" : "Close Request"}
+              {closureReason === "answered_prayer" ? t("request.markAnswered") : t("request.closeRequest")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -719,19 +721,19 @@ export default function PrayerRequestDetail() {
       <AlertDialog open={pendingArchive} onOpenChange={(open) => { if (!open) setPendingArchive(false); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive Prayer Request?</AlertDialogTitle>
+            <AlertDialogTitle>{t("request.archiveConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Archiving will hide this request from the active list. Only admins can view archived requests. This action cannot be undone.
+              {t("request.archiveConfirmDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={executeAddUpdate}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               data-testid="btn-confirm-archive"
             >
-              Archive
+              {t("request.archive")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

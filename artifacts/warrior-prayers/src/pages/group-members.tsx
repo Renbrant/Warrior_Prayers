@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useGetMe } from "@workspace/api-client-react";
+import { useTranslation } from "react-i18next";
 
 function MemberAvatar({ name, photoUrl }: { name: string | null; photoUrl: string | null }) {
   const initials = name
@@ -46,6 +47,7 @@ function MemberAvatar({ name, photoUrl }: { name: string | null; photoUrl: strin
 }
 
 function RoleBadge({ role }: { role: string }) {
+  const { t } = useTranslation();
   const colors: Record<string, string> = {
     admin: "bg-primary/20 text-primary border-primary/30",
     moderator: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -53,7 +55,7 @@ function RoleBadge({ role }: { role: string }) {
   };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors[role] ?? colors.member}`}>
-      {role.charAt(0).toUpperCase() + role.slice(1)}
+      {t(`role.${role}`, role.charAt(0).toUpperCase() + role.slice(1))}
     </span>
   );
 }
@@ -63,6 +65,7 @@ export default function GroupMembers() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const [removeMemberId, setRemoveMemberId] = useState<string | null>(null);
   const [removeMemberName, setRemoveMemberName] = useState<string>("");
@@ -87,10 +90,10 @@ export default function GroupMembers() {
       {
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: getListGroupMembersQueryKey(groupId!) });
-          toast({ title: "Role updated", description: `Member role changed to ${role}.` });
+          toast({ title: t("members.roleUpdated") });
         },
         onError: () => {
-          toast({ title: "Failed to update role", variant: "destructive" });
+          toast({ title: t("members.failedUpdateRole"), variant: "destructive" });
         },
       },
     );
@@ -104,11 +107,11 @@ export default function GroupMembers() {
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: getListGroupMembersQueryKey(groupId!) });
           void queryClient.invalidateQueries({ queryKey: getGetGroupQueryKey(groupId!) });
-          toast({ title: "Member removed" });
+          toast({ title: t("members.memberRemoved") });
           setRemoveMemberId(null);
         },
         onError: () => {
-          toast({ title: "Failed to remove member", variant: "destructive" });
+          toast({ title: t("members.failedRemove"), variant: "destructive" });
           setRemoveMemberId(null);
         },
       },
@@ -139,14 +142,18 @@ export default function GroupMembers() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-extrabold text-foreground">Members</h1>
-          <p className="text-sm text-muted-foreground">{group?.name} · {group?.memberCount ?? 0} members</p>
+          <h1 className="text-2xl font-extrabold text-foreground">{t("members.title")}</h1>
+          <p className="text-sm text-muted-foreground">
+            {group?.name} · {group?.memberCount === 1
+              ? t("common.members_one", { count: 1 })
+              : t("common.members_other", { count: group?.memberCount ?? 0 })}
+          </p>
         </div>
       </header>
 
       <div className="bg-card border border-border rounded-3xl overflow-hidden">
         {!members || members.length === 0 ? (
-          <p className="p-8 text-center text-muted-foreground text-sm">No members found.</p>
+          <p className="p-8 text-center text-muted-foreground text-sm">{t("members.noMembers")}</p>
         ) : (
           <ul className="divide-y divide-border">
             {members.map((m) => {
@@ -157,11 +164,11 @@ export default function GroupMembers() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">
                       {m.fullName ?? m.email}
-                      {isSelf && <span className="text-muted-foreground font-normal ml-1">(you)</span>}
+                      {isSelf && <span className="text-muted-foreground font-normal ml-1">{t("members.you")}</span>}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">{m.email}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Joined {new Date(m.joinedAt).toLocaleDateString()}
+                      {t("members.joined", { date: new Date(m.joinedAt).toLocaleDateString() })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -174,7 +181,7 @@ export default function GroupMembers() {
                             className="rounded-full gap-1.5"
                             data-testid={`btn-role-${m.id}`}
                           >
-                            {m.role.charAt(0).toUpperCase() + m.role.slice(1)}
+                            {t(`role.${m.role}`, m.role.charAt(0).toUpperCase() + m.role.slice(1))}
                             <ChevronDown className="w-3.5 h-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -186,7 +193,7 @@ export default function GroupMembers() {
                               className={m.role === r ? "text-primary" : ""}
                               data-testid={`role-option-${r}`}
                             >
-                              {r.charAt(0).toUpperCase() + r.slice(1)}
+                              {t(`role.${r}`, r.charAt(0).toUpperCase() + r.slice(1))}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
@@ -219,19 +226,19 @@ export default function GroupMembers() {
       <AlertDialog open={!!removeMemberId} onOpenChange={(open) => !open && setRemoveMemberId(null)}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove member?</AlertDialogTitle>
+            <AlertDialogTitle>{t("members.removeTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove <strong>{removeMemberName}</strong> from the group. They will need to be re-invited to rejoin.
+              {t("members.removeDesc", { name: removeMemberName })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="btn-cancel-remove">Cancel</AlertDialogCancel>
+            <AlertDialogCancel data-testid="btn-cancel-remove">{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveConfirm}
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               data-testid="btn-confirm-remove"
             >
-              Remove
+              {t("members.removeBtn")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

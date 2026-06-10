@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
 
 function RoleBadge({ role }: { role: string }) {
+  const { t } = useTranslation();
   const colors: Record<string, string> = {
     admin: "bg-primary/20 text-primary border-primary/30",
     moderator: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -21,7 +22,7 @@ function RoleBadge({ role }: { role: string }) {
   };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${colors[role] ?? colors.member}`}>
-      {role.charAt(0).toUpperCase() + role.slice(1)}
+      {t(`role.${role}`, role.charAt(0).toUpperCase() + role.slice(1))}
     </span>
   );
 }
@@ -58,14 +59,14 @@ export default function Dashboard() {
     return (
       <div className="p-10 flex flex-col items-center gap-4 text-center">
         <AlertCircle className="w-10 h-10 text-destructive" />
-        <p className="text-muted-foreground">Failed to load dashboard. Please try again.</p>
+        <p className="text-muted-foreground">{t("common.failedLoad")}</p>
         <Button
           variant="outline"
           onClick={() => { void refetchUser(); void refetchSummary(); void refetchGroups(); }}
           className="rounded-full"
           data-testid="btn-retry-dashboard"
         >
-          Try Again
+          {t("common.tryAgain")}
         </Button>
       </div>
     );
@@ -90,11 +91,11 @@ export default function Dashboard() {
   }
 
   const statCards = [
-    { label: "Groups", value: summary.groupCount, icon: Users },
-    { label: "Active Requests", value: summary.activeRequestCount, icon: AlertCircle },
-    { label: "Closed Requests", value: summary.closedRequestCount, icon: CheckCircle2 },
-    { label: "Answered Prayers", value: summary.answeredPrayerCount, icon: Inbox },
-    { label: "Praying For", value: summary.myCommittedRequestCount, icon: Heart },
+    { label: t("dashboard.stat.groups"), value: summary.groupCount, icon: Users },
+    { label: t("dashboard.stat.activeRequests"), value: summary.activeRequestCount, icon: AlertCircle },
+    { label: t("dashboard.stat.closedRequests"), value: summary.closedRequestCount, icon: CheckCircle2 },
+    { label: t("dashboard.stat.answeredPrayers"), value: summary.answeredPrayerCount, icon: Inbox },
+    { label: t("dashboard.stat.prayingFor"), value: summary.myCommittedRequestCount, icon: Heart },
   ];
 
   const hasGroups = (groups?.length ?? 0) > 0;
@@ -113,7 +114,9 @@ export default function Dashboard() {
               data-testid="btn-pending-invitations"
             >
               <Bell className="w-4 h-4 animate-pulse" />
-              You have {summary.pendingInvitationCount} pending invitation{summary.pendingInvitationCount !== 1 ? 's' : ''} →
+              {summary.pendingInvitationCount === 1
+                ? t("dashboard.pendingInvitations_one", { count: 1 })
+                : t("dashboard.pendingInvitations_other", { count: summary.pendingInvitationCount })}
             </button>
           )}
         </div>
@@ -153,7 +156,7 @@ export default function Dashboard() {
       ) : (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-foreground">Your Groups</h2>
+            <h2 className="text-xl font-bold text-foreground">{t("dashboard.yourGroups")}</h2>
           </div>
           {isGroupsLoading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -192,7 +195,9 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-xs text-muted-foreground">
-                      {group.memberCount} member{group.memberCount !== 1 ? 's' : ''}
+                      {group.memberCount === 1
+                        ? t("common.members_one", { count: 1 })
+                        : t("common.members_other", { count: group.memberCount })}
                     </span>
                     <RoleBadge role={group.myRole} />
                   </div>
@@ -209,9 +214,9 @@ export default function Dashboard() {
           <HandCoins className="w-6 h-6 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-foreground">Apoie o Warrior Prayers</h3>
+          <h3 className="font-bold text-foreground">{t("dashboard.donate.title")}</h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Ajude a manter o projeto vivo e em constante evolução com uma doação voluntária.
+            {t("dashboard.donate.desc")}
           </p>
         </div>
         <a
@@ -222,7 +227,7 @@ export default function Dashboard() {
           data-testid="btn-donate-dashboard"
         >
           <HandCoins className="w-4 h-4" />
-          Fazer doação
+          {t("dashboard.donate.btn")}
         </a>
       </div>
     </div>

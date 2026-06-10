@@ -3,9 +3,11 @@ import { useListMyGroups, getListMyGroupsQueryKey, type GroupSummary } from "@wo
 import { Heart, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 export default function PrayerHub() {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const { data: groups = [], isLoading } = useListMyGroups({
     query: { queryKey: getListMyGroupsQueryKey() },
@@ -24,9 +26,9 @@ export default function PrayerHub() {
         </Button>
         <div>
           <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-            <Heart className="w-5 h-5 text-primary" /> Prayer Mode
+            <Heart className="w-5 h-5 text-primary" /> {t("prayerHub.title")}
           </h1>
-          <p className="text-sm text-muted-foreground">Choose a group to begin</p>
+          <p className="text-sm text-muted-foreground">{t("prayerHub.chooseGroup")}</p>
         </div>
       </header>
 
@@ -39,16 +41,16 @@ export default function PrayerHub() {
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
             <Heart className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground font-medium">No groups yet</p>
+          <p className="text-muted-foreground font-medium">{t("prayerHub.noGroups")}</p>
           <p className="text-sm text-muted-foreground">
-            Join or create a prayer group to start Prayer Mode.
+            {t("prayerHub.noGroupsDesc")}
           </p>
           <Button
             variant="ghost"
             onClick={() => setLocation("/app/dashboard")}
             className="rounded-full"
           >
-            Back to Dashboard
+            {t("common.backToDashboard")}
           </Button>
         </div>
       ) : (
@@ -58,20 +60,22 @@ export default function PrayerHub() {
               <button
                 className="w-full bg-card border border-border hover:border-primary/40 rounded-3xl p-5 flex items-center justify-between gap-4 transition-colors text-left"
                 onClick={() => setLocation(`/app/groups/${group.id}/pray`)}
-                data-testid={`btn-pray-group-${group.id}`}
+                data-testid={`btn-pray-${group.id}`}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground truncate">{group.name}</p>
-                  {group.churchName && (
-                    <p className="text-sm text-muted-foreground truncate">{group.churchName}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {group.memberCount} {group.memberCount === 1 ? "member" : "members"}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Heart className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground">{group.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {group.memberCount === 1
+                        ? t("common.members_one", { count: 1 })
+                        : t("common.members_other", { count: group.memberCount })}
+                    </p>
+                  </div>
                 </div>
-                <div className="shrink-0 flex items-center gap-2 text-primary font-semibold text-sm">
-                  <Heart className="w-4 h-4" /> Pray
-                </div>
+                <Heart className="w-4 h-4 text-muted-foreground" />
               </button>
             </li>
           ))}

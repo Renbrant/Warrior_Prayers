@@ -36,7 +36,7 @@ export default function CompleteProfile() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       fullName: "",
-      preferredLanguage: (i18n.language as any) || "en",
+      preferredLanguage: (i18n.language as "en" | "pt" | "es") || "en",
       phone: "",
       churchName: "",
       city: "",
@@ -50,7 +50,7 @@ export default function CompleteProfile() {
       } else {
         form.reset({
           fullName: user.fullName || "",
-          preferredLanguage: (user.preferredLanguage as any) || "en",
+          preferredLanguage: (user.preferredLanguage as "en" | "pt" | "es") || "en",
           phone: user.phone || "",
           churchName: user.churchName || "",
           city: user.city || "",
@@ -64,7 +64,7 @@ export default function CompleteProfile() {
     localStorage.setItem("language", data.preferredLanguage);
 
     updateMe.mutate(
-      { data: data as any },
+      { data: data as Parameters<typeof updateMe.mutate>[0]["data"] },
       {
         onSuccess: (updatedUser) => {
           queryClient.setQueryData(getGetMeQueryKey(), updatedUser);
@@ -87,8 +87,8 @@ export default function CompleteProfile() {
     <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-xl bg-card border border-border p-8 sm:p-12 rounded-[2.5rem] shadow-2xl">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-extrabold text-foreground">Complete Your Profile</h1>
-          <p className="text-muted-foreground mt-3 text-lg">Just a few details to set up your account.</p>
+          <h1 className="text-3xl font-extrabold text-foreground">{t("completeProfile.title")}</h1>
+          <p className="text-muted-foreground mt-3 text-lg">{t("completeProfile.subtitle")}</p>
         </div>
 
         <Form {...form}>
@@ -98,7 +98,7 @@ export default function CompleteProfile() {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">Full Name *</FormLabel>
+                  <FormLabel className="text-foreground/80 font-medium">{t("completeProfile.fullName")} *</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="John Doe" className="bg-background rounded-2xl h-14 px-4 text-base" data-testid="input-fullname" />
                   </FormControl>
@@ -112,11 +112,11 @@ export default function CompleteProfile() {
               name="preferredLanguage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">Language *</FormLabel>
+                  <FormLabel className="text-foreground/80 font-medium">{t("completeProfile.language")} *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="bg-background rounded-2xl h-14 px-4 text-base" data-testid="select-lang">
-                        <SelectValue placeholder="Select a language" />
+                        <SelectValue placeholder={t("settings.language")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -136,7 +136,7 @@ export default function CompleteProfile() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/80 font-medium">Phone (Optional)</FormLabel>
+                    <FormLabel className="text-foreground/80 font-medium">{t("completeProfile.phone")}</FormLabel>
                     <FormControl>
                       <Input {...field} type="tel" className="bg-background rounded-2xl h-14 px-4 text-base" data-testid="input-phone" />
                     </FormControl>
@@ -150,7 +150,7 @@ export default function CompleteProfile() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/80 font-medium">City (Optional)</FormLabel>
+                    <FormLabel className="text-foreground/80 font-medium">{t("completeProfile.city")}</FormLabel>
                     <FormControl>
                       <Input {...field} className="bg-background rounded-2xl h-14 px-4 text-base" data-testid="input-city" />
                     </FormControl>
@@ -165,7 +165,7 @@ export default function CompleteProfile() {
               name="churchName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">Church / Ministry (Optional)</FormLabel>
+                  <FormLabel className="text-foreground/80 font-medium">{t("completeProfile.churchMinistry")}</FormLabel>
                   <FormControl>
                     <Input {...field} className="bg-background rounded-2xl h-14 px-4 text-base" data-testid="input-church" />
                   </FormControl>
@@ -176,7 +176,7 @@ export default function CompleteProfile() {
 
             <div className="pt-4">
               <Button type="submit" className="w-full h-14 rounded-full text-base font-bold shadow-lg shadow-primary/20" disabled={updateMe.isPending} data-testid="btn-save-profile">
-                {updateMe.isPending ? "Saving..." : "Save and Continue"}
+                {updateMe.isPending ? t("completeProfile.saving") : t("completeProfile.saveBtn")}
               </Button>
             </div>
           </form>

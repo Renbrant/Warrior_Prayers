@@ -1,38 +1,36 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
-import { useClerk, useUser } from "@clerk/react";
 import {
   useGetMe,
   useUpdateMe,
   getGetMeQueryKey,
 } from "@workspace/api-client-react";
-import { useTranslation } from "react-i18next";
+import { useClerk } from "@clerk/react";
 import { ArrowLeft, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
-  profilePhotoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  profilePhotoUrl: z.string().optional(),
   phone: z.string().optional(),
   churchName: z.string().optional(),
   city: z.string().optional(),
@@ -40,81 +38,12 @@ const profileSchema = z.object({
 
 type ProfileValues = z.infer<typeof profileSchema>;
 
-function ConnectedAccountsList({
-  userEmail,
-  primaryProvider,
-}: {
-  userEmail: string | null;
-  primaryProvider: string | null;
-}) {
-  const { user: clerkUser } = useUser();
-
-  const externalAccounts = clerkUser?.externalAccounts ?? [];
-
-  if (externalAccounts.length > 0) {
-    return (
-      <ul className="space-y-2">
-        {externalAccounts.map((acct) => (
-          <li
-            key={acct.id}
-            className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-3"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold uppercase">
-              {acct.provider.slice(0, 2)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground capitalize">{acct.provider}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {acct.emailAddress ?? userEmail ?? ""}
-              </p>
-            </div>
-            <span className="text-xs text-green-500 font-semibold">Connected</span>
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
-  if (primaryProvider) {
-    return (
-      <ul className="space-y-2">
-        <li className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-3">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold uppercase">
-            {primaryProvider.slice(0, 2)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground capitalize">{primaryProvider}</p>
-            <p className="text-xs text-muted-foreground truncate">{userEmail ?? ""}</p>
-          </div>
-          <span className="text-xs text-green-500 font-semibold">Connected</span>
-        </li>
-      </ul>
-    );
-  }
-
-  return <p className="text-sm text-muted-foreground">No connected accounts.</p>;
-}
-
-function UserAvatar({ name, photoUrl }: { name: string | null | undefined; photoUrl: string | null | undefined }) {
-  const initials = name
-    ? name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-    : "?";
-  if (photoUrl) {
-    return <img src={photoUrl} alt={name ?? ""} className="w-20 h-20 rounded-full object-cover" />;
-  }
-  return (
-    <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-bold">
-      {initials}
-    </div>
-  );
-}
-
 export default function Profile() {
   const [, setLocation] = useLocation();
-  const queryClient = useQueryClient();
-  const { signOut } = useClerk();
-  const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const { t, i18n } = useTranslation();
+  const { signOut } = useClerk();
+  const queryClient = useQueryClient();
 
   const [selectedLang, setSelectedLang] = useState<"en" | "pt" | "es">(
     () => {
@@ -173,10 +102,10 @@ export default function Profile() {
       {
         onSuccess: (updated) => {
           queryClient.setQueryData(getGetMeQueryKey(), updated);
-          toast({ title: "Profile saved", description: "Your changes have been saved." });
+          toast({ title: t("profile.saved") });
         },
         onError: () => {
-          toast({ title: "Failed to save profile", variant: "destructive" });
+          toast({ title: t("common.error"), variant: "destructive" });
         },
       },
     );
@@ -213,14 +142,21 @@ export default function Profile() {
         </Button>
         <div>
           <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" /> Profile & Settings
+            <User className="w-5 h-5 text-primary" /> {t("profile.title")}
           </h1>
-          <p className="text-sm text-muted-foreground">Manage your account</p>
         </div>
       </header>
 
       <div className="flex flex-col items-center gap-3">
-        <UserAvatar name={user?.fullName} photoUrl={user?.profilePhotoUrl} />
+        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+          {user?.profilePhotoUrl ? (
+            <img src={user.profilePhotoUrl} alt={user?.fullName ?? ""} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-2xl font-bold text-primary">
+              {(user?.fullName ?? "?").slice(0, 2).toUpperCase()}
+            </span>
+          )}
+        </div>
         <div className="text-center">
           <p className="font-bold text-foreground text-lg">{user?.fullName ?? "—"}</p>
           {user?.email && !user.email.includes("@unknown.local") && (
@@ -237,7 +173,7 @@ export default function Profile() {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">Full Name *</FormLabel>
+                  <FormLabel className="text-foreground/80 font-medium">{t("profile.fullName")} *</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -256,12 +192,12 @@ export default function Profile() {
               name="profilePhotoUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">Profile Photo URL</FormLabel>
+                  <FormLabel className="text-foreground/80 font-medium">{t("profile.photoUrl")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       type="url"
-                      placeholder="https://example.com/photo.jpg (optional)"
+                      placeholder={t("profile.photoUrlPlaceholder")}
                       className="bg-background rounded-2xl h-12 px-4"
                       data-testid="input-photo-url"
                     />
@@ -272,7 +208,7 @@ export default function Profile() {
             />
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground/80">Language</label>
+              <label className="text-sm font-medium text-foreground/80">{t("profile.language")}</label>
               <Select
                 value={selectedLang}
                 onValueChange={(v) => setSelectedLang(v as "en" | "pt" | "es")}
@@ -297,12 +233,12 @@ export default function Profile() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/80 font-medium">Phone</FormLabel>
+                    <FormLabel className="text-foreground/80 font-medium">{t("profile.phone")}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         type="tel"
-                        placeholder="Optional"
+                        placeholder={t("common.optional")}
                         className="bg-background rounded-2xl h-12 px-4"
                         data-testid="input-phone"
                       />
@@ -316,11 +252,11 @@ export default function Profile() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/80 font-medium">City</FormLabel>
+                    <FormLabel className="text-foreground/80 font-medium">{t("profile.city")}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="Optional"
+                        placeholder={t("common.optional")}
                         className="bg-background rounded-2xl h-12 px-4"
                         data-testid="input-city"
                       />
@@ -336,11 +272,11 @@ export default function Profile() {
               name="churchName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground/80 font-medium">Church / Ministry</FormLabel>
+                  <FormLabel className="text-foreground/80 font-medium">{t("profile.churchMinistry")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder="Optional"
+                      placeholder={t("common.optional")}
                       className="bg-background rounded-2xl h-12 px-4"
                       data-testid="input-church"
                     />
@@ -357,7 +293,7 @@ export default function Profile() {
                 disabled={updateMe.isPending}
                 data-testid="btn-save-profile"
               >
-                {updateMe.isPending ? "Saving…" : "Save Changes"}
+                {updateMe.isPending ? t("common.saving") : t("profile.saveChanges")}
               </Button>
             </div>
           </form>
@@ -365,22 +301,24 @@ export default function Profile() {
       </div>
 
       <div className="bg-card border border-border rounded-3xl p-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Account</h2>
-        <div className="space-y-1 text-sm text-muted-foreground mb-4">
-          <p><span className="text-foreground font-medium">Email:</span> {user?.email}</p>
-          <p>
-            <span className="text-foreground font-medium">Email verified:</span>{" "}
-            {user?.emailVerified ? "Yes" : "No"}
-          </p>
-          <p>
-            <span className="text-foreground font-medium">Member since:</span>{" "}
-            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
-          </p>
-        </div>
-
         <div className="mb-6">
-          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Connected Accounts</p>
-          <ConnectedAccountsList userEmail={user?.email ?? null} primaryProvider={user?.primaryAuthProvider ?? null} />
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+            {t("profile.connectedAccounts")}
+          </p>
+          {user?.email && !user.email.includes("@unknown.local") ? (
+            <div className="flex items-center gap-3 text-sm">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <User className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-foreground font-medium truncate">{user.email}</p>
+                <p className="text-xs text-muted-foreground capitalize">{user.primaryAuthProvider ?? "email"}</p>
+              </div>
+              <span className="text-xs font-medium text-green-400">{t("common.connected")}</span>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("profile.noConnectedAccounts")}</p>
+          )}
         </div>
 
         <AlertDialog>
@@ -391,24 +329,24 @@ export default function Profile() {
               data-testid="btn-logout"
             >
               <LogOut className="w-4 h-4" />
-              {t("auth.logout")}
+              {t("profile.signOut")}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent className="bg-card border-border">
             <AlertDialogHeader>
-              <AlertDialogTitle>Sign out?</AlertDialogTitle>
+              <AlertDialogTitle>{t("profile.signOutConfirm")}</AlertDialogTitle>
               <AlertDialogDescription>
-                You will be returned to the home page.
+                {t("profile.signOutDesc")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => signOut({ redirectUrl: "/" })}
                 className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 data-testid="btn-confirm-logout"
               >
-                Sign Out
+                {t("profile.signOutBtn")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 function ToggleRow({
   id,
@@ -50,6 +51,7 @@ export default function GroupSettings() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const { data: group, isLoading } = useGetGroup(groupId!, {
     query: { queryKey: getGetGroupQueryKey(groupId!), enabled: !!groupId },
@@ -113,10 +115,10 @@ export default function GroupSettings() {
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: getGetGroupQueryKey(groupId!) });
           void queryClient.invalidateQueries({ queryKey: getListMyGroupsQueryKey() });
-          toast({ title: "Settings saved", description: "Group settings updated successfully." });
+          toast({ title: t("groupSettings.saved") });
         },
         onError: () => {
-          toast({ title: "Failed to save settings", variant: "destructive" });
+          toast({ title: t("groupSettings.error"), variant: "destructive" });
         },
       },
     );
@@ -145,7 +147,7 @@ export default function GroupSettings() {
         </Button>
         <div>
           <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-            <Settings className="w-5 h-5 text-primary" /> Group Settings
+            <Settings className="w-5 h-5 text-primary" /> {t("groupSettings.title")}
           </h1>
           <p className="text-sm text-muted-foreground">{group?.name}</p>
         </div>
@@ -153,10 +155,10 @@ export default function GroupSettings() {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <section className="bg-card border border-border rounded-3xl p-6 space-y-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Group Details</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("group.form.groupDetails")}</h2>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Group Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="name">{t("group.form.name")} <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               data-testid="input-name"
@@ -168,7 +170,7 @@ export default function GroupSettings() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("group.form.description")}</Label>
             <Textarea
               id="description"
               data-testid="input-description"
@@ -180,7 +182,7 @@ export default function GroupSettings() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="churchName">Church / Ministry</Label>
+              <Label htmlFor="churchName">{t("group.form.churchMinistry")}</Label>
               <Input
                 id="churchName"
                 data-testid="input-church-name"
@@ -190,7 +192,7 @@ export default function GroupSettings() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">{t("group.form.city")}</Label>
               <Input
                 id="city"
                 data-testid="input-city"
@@ -202,7 +204,7 @@ export default function GroupSettings() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="verse">Scripture Verse</Label>
+            <Label htmlFor="verse">{t("group.form.verse")}</Label>
             <Input
               id="verse"
               data-testid="input-verse"
@@ -213,26 +215,56 @@ export default function GroupSettings() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Group Image URL</Label>
+            <Label htmlFor="imageUrl">{t("group.form.imageUrl")}</Label>
             <Input
               id="imageUrl"
               data-testid="input-image-url"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
+              placeholder={t("group.form.imageUrlPlaceholder")}
               className="rounded-xl h-12"
             />
           </div>
         </section>
 
         <section className="bg-card border border-border rounded-3xl p-6 space-y-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Privacy Settings</h2>
-          <ToggleRow id="hidePrayerPersonNames" label="Hide prayer person names" description="Members won't see who a prayer request is for" checked={hidePrayerPersonNames} onCheckedChange={setHidePrayerPersonNames} />
-          <ToggleRow id="allowCustomCategories" label="Allow custom categories" description="Members can create their own prayer categories" checked={allowCustomCategories} onCheckedChange={setAllowCustomCategories} />
-          <ToggleRow id="allowComments" label="Allow comments on prayer requests" description="Members can leave comments and encouragement" checked={allowComments} onCheckedChange={setAllowComments} />
-          <ToggleRow id="allowAnonymousRequests" label="Allow anonymous prayer requests" description="Members can submit requests without showing their name" checked={allowAnonymousRequests} onCheckedChange={setAllowAnonymousRequests} />
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("group.form.privacySettings")}</h2>
+          <ToggleRow
+            id="hidePrayerPersonNames"
+            label={t("group.form.hidePrayerNames")}
+            description={t("group.form.hidePrayerNamesDesc")}
+            checked={hidePrayerPersonNames}
+            onCheckedChange={setHidePrayerPersonNames}
+          />
+          <ToggleRow
+            id="allowCustomCategories"
+            label={t("group.form.allowCustomCategories")}
+            description={t("group.form.allowCustomCategoriesDesc")}
+            checked={allowCustomCategories}
+            onCheckedChange={setAllowCustomCategories}
+          />
+          <ToggleRow
+            id="allowComments"
+            label={t("group.form.allowComments")}
+            description={t("group.form.allowCommentsDesc")}
+            checked={allowComments}
+            onCheckedChange={setAllowComments}
+          />
+          <ToggleRow
+            id="allowAnonymousRequests"
+            label={t("group.form.allowAnonymous")}
+            description={t("group.form.allowAnonymousDesc")}
+            checked={allowAnonymousRequests}
+            onCheckedChange={setAllowAnonymousRequests}
+          />
           {allowAnonymousRequests && (
-            <ToggleRow id="adminsCanViewAnonymousAuthors" label="Admins can see anonymous authors" description="Admins and moderators can view who submitted anonymous requests" checked={adminsCanViewAnonymousAuthors} onCheckedChange={setAdminsCanViewAnonymousAuthors} />
+            <ToggleRow
+              id="adminsCanViewAnonymousAuthors"
+              label={t("group.form.adminsViewAnonymous")}
+              description={t("group.form.adminsViewAnonymousDesc")}
+              checked={adminsCanViewAnonymousAuthors}
+              onCheckedChange={setAdminsCanViewAnonymousAuthors}
+            />
           )}
         </section>
 
@@ -242,16 +274,16 @@ export default function GroupSettings() {
           disabled={!name.trim() || updateGroup.isPending}
           className="w-full h-14 rounded-full text-base font-semibold shadow-lg shadow-primary/20"
         >
-          {updateGroup.isPending ? "Saving…" : "Save Changes"}
+          {updateGroup.isPending ? t("groupSettings.saving") : t("groupSettings.saveBtn")}
         </Button>
       </form>
 
       <section className="bg-card border border-border rounded-3xl p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Manage</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("categories.title")}</h2>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-foreground">Prayer Categories</p>
-            <p className="text-xs text-muted-foreground">Create and manage categories for prayer requests.</p>
+            <p className="text-sm font-medium text-foreground">{t("categories.title")}</p>
+            <p className="text-xs text-muted-foreground">{t("categories.noCategories")}</p>
           </div>
           <Button
             type="button"
@@ -260,17 +292,17 @@ export default function GroupSettings() {
             data-testid="btn-manage-categories"
             onClick={() => setLocation(`/app/groups/${groupId}/categories`)}
           >
-            Manage →
+            {t("common.viewAll")}
           </Button>
         </div>
       </section>
 
       <section className="bg-card border border-destructive/20 rounded-3xl p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-destructive/80 uppercase tracking-wider">Danger Zone</h2>
+        <h2 className="text-sm font-semibold text-destructive/80 uppercase tracking-wider">{t("common.delete")}</h2>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-foreground">Delete Group</p>
-            <p className="text-xs text-muted-foreground">This action cannot be undone.</p>
+            <p className="text-sm font-medium text-foreground">{t("common.delete")} Group</p>
+            <p className="text-xs text-muted-foreground">{t("request.archiveConfirm.desc")}</p>
           </div>
           <Button
             variant="outline"
@@ -279,7 +311,7 @@ export default function GroupSettings() {
             data-testid="btn-delete-group"
             title="Coming soon"
           >
-            Delete Group
+            {t("common.delete")}
           </Button>
         </div>
       </section>
