@@ -502,8 +502,13 @@ router.post(
         return;
       }
 
+      if (!invite.invitedEmail) {
+        res.status(400).json({ error: "Link invites cannot be declined — they can only be revoked by a group admin" });
+        return;
+      }
+
       const dbUserEmail = req.dbUserEmail;
-      if (invite.invitedEmail && dbUserEmail && invite.invitedEmail !== dbUserEmail) {
+      if (dbUserEmail && invite.invitedEmail !== dbUserEmail) {
         res.status(403).json({ error: "This invite was not sent to you" });
         return;
       }

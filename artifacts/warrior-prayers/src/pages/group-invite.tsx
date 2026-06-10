@@ -54,7 +54,7 @@ export default function GroupInvite() {
   const createInvite = useCreateGroupInvite();
   const revokeInvite = useRevokeGroupInvite();
 
-  const isAdmin = group?.myRole === "admin" || group?.myRole === "moderator";
+  const isAdmin = group?.myRole === "admin";
 
   const handleSendEmail = () => {
     if (!emailInput.trim()) return;
