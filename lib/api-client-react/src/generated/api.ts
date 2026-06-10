@@ -20,7 +20,12 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CategoryInput,
+  CategoryPatch,
+  CommentInput,
+  CommitmentStatus,
   DashboardSummary,
+  GetPrayerHistoryParams,
   GroupDetail,
   GroupInput,
   GroupInvite,
@@ -31,8 +36,16 @@ import type {
   InviteInput,
   InvitePreview,
   LanguageUpdate,
+  ListPrayerRequestsParams,
   MemberRoleInput,
   MyInvitation,
+  PrayerCategory,
+  PrayerCommentItem,
+  PrayerRequestDetail,
+  PrayerRequestInput,
+  PrayerRequestPatch,
+  PrayerRequestSummary,
+  PrayerUpdateInput,
   UserProfile,
   UserProfileUpdate
 } from './api.schemas';
@@ -1456,4 +1469,1081 @@ export const useDeclineInvite = <TError = ErrorType<void>,
       > => {
       return useMutation(getDeclineInviteMutationOptions(options));
     }
+
+export const getListCategoriesUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/categories`
+}
+
+/**
+ * @summary List all active categories for a group
+ */
+export const listCategories = async (groupId: string, options?: RequestInit): Promise<PrayerCategory[]> => {
+
+  return customFetch<PrayerCategory[]>(getListCategoriesUrl(groupId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCategoriesQueryKey = (groupId: string,) => {
+    return [
+    `/api/groups/${groupId}/categories`
+    ] as const;
+    }
+
+
+export const getListCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<void>>(groupId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCategoriesQueryKey(groupId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCategories>>> = ({ signal }) => listCategories(groupId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof listCategories>>>
+export type ListCategoriesQueryError = ErrorType<void>
+
+
+/**
+ * @summary List all active categories for a group
+ */
+
+export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<void>>(
+ groupId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCategoriesQueryOptions(groupId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCategoryUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/categories`
+}
+
+/**
+ * @summary Create a custom prayer category (admin only)
+ */
+export const createCategory = async (groupId: string,
+    categoryInput: CategoryInput, options?: RequestInit): Promise<PrayerCategory> => {
+
+  return customFetch<PrayerCategory>(getCreateCategoryUrl(groupId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      categoryInput,)
+  }
+);}
+
+
+
+
+export const getCreateCategoryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{groupId: string;data: BodyType<CategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{groupId: string;data: BodyType<CategoryInput>}, TContext> => {
+
+const mutationKey = ['createCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCategory>>, {groupId: string;data: BodyType<CategoryInput>}> = (props) => {
+          const {groupId,data} = props ?? {};
+
+          return  createCategory(groupId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createCategory>>>
+    export type CreateCategoryMutationBody = BodyType<CategoryInput>
+    export type CreateCategoryMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a custom prayer category (admin only)
+ */
+export const useCreateCategory = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{groupId: string;data: BodyType<CategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCategory>>,
+        TError,
+        {groupId: string;data: BodyType<CategoryInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCategoryMutationOptions(options));
+    }
+
+export const getUpdateCategoryUrl = (groupId: string,
+    categoryId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/categories/${categoryId}`
+}
+
+/**
+ * @summary Update a category (admin only)
+ */
+export const updateCategory = async (groupId: string,
+    categoryId: string,
+    categoryPatch: CategoryPatch, options?: RequestInit): Promise<PrayerCategory> => {
+
+  return customFetch<PrayerCategory>(getUpdateCategoryUrl(groupId,categoryId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      categoryPatch,)
+  }
+);}
+
+
+
+
+export const getUpdateCategoryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{groupId: string;categoryId: string;data: BodyType<CategoryPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{groupId: string;categoryId: string;data: BodyType<CategoryPatch>}, TContext> => {
+
+const mutationKey = ['updateCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCategory>>, {groupId: string;categoryId: string;data: BodyType<CategoryPatch>}> = (props) => {
+          const {groupId,categoryId,data} = props ?? {};
+
+          return  updateCategory(groupId,categoryId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateCategory>>>
+    export type UpdateCategoryMutationBody = BodyType<CategoryPatch>
+    export type UpdateCategoryMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a category (admin only)
+ */
+export const useUpdateCategory = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{groupId: string;categoryId: string;data: BodyType<CategoryPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCategory>>,
+        TError,
+        {groupId: string;categoryId: string;data: BodyType<CategoryPatch>},
+        TContext
+      > => {
+      return useMutation(getUpdateCategoryMutationOptions(options));
+    }
+
+export const getListPrayerRequestsUrl = (groupId: string,
+    params?: ListPrayerRequestsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/groups/${groupId}/requests?${stringifiedParams}` : `/api/groups/${groupId}/requests`
+}
+
+/**
+ * @summary List prayer requests for a group
+ */
+export const listPrayerRequests = async (groupId: string,
+    params?: ListPrayerRequestsParams, options?: RequestInit): Promise<PrayerRequestSummary[]> => {
+
+  return customFetch<PrayerRequestSummary[]>(getListPrayerRequestsUrl(groupId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPrayerRequestsQueryKey = (groupId: string,
+    params?: ListPrayerRequestsParams,) => {
+    return [
+    `/api/groups/${groupId}/requests`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPrayerRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listPrayerRequests>>, TError = ErrorType<void>>(groupId: string,
+    params?: ListPrayerRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPrayerRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPrayerRequestsQueryKey(groupId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPrayerRequests>>> = ({ signal }) => listPrayerRequests(groupId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPrayerRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPrayerRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof listPrayerRequests>>>
+export type ListPrayerRequestsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List prayer requests for a group
+ */
+
+export function useListPrayerRequests<TData = Awaited<ReturnType<typeof listPrayerRequests>>, TError = ErrorType<void>>(
+ groupId: string,
+    params?: ListPrayerRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPrayerRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPrayerRequestsQueryOptions(groupId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreatePrayerRequestUrl = (groupId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests`
+}
+
+/**
+ * @summary Create a new prayer request
+ */
+export const createPrayerRequest = async (groupId: string,
+    prayerRequestInput: PrayerRequestInput, options?: RequestInit): Promise<PrayerRequestDetail> => {
+
+  return customFetch<PrayerRequestDetail>(getCreatePrayerRequestUrl(groupId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      prayerRequestInput,)
+  }
+);}
+
+
+
+
+export const getCreatePrayerRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrayerRequest>>, TError,{groupId: string;data: BodyType<PrayerRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPrayerRequest>>, TError,{groupId: string;data: BodyType<PrayerRequestInput>}, TContext> => {
+
+const mutationKey = ['createPrayerRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPrayerRequest>>, {groupId: string;data: BodyType<PrayerRequestInput>}> = (props) => {
+          const {groupId,data} = props ?? {};
+
+          return  createPrayerRequest(groupId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePrayerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createPrayerRequest>>>
+    export type CreatePrayerRequestMutationBody = BodyType<PrayerRequestInput>
+    export type CreatePrayerRequestMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a new prayer request
+ */
+export const useCreatePrayerRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrayerRequest>>, TError,{groupId: string;data: BodyType<PrayerRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPrayerRequest>>,
+        TError,
+        {groupId: string;data: BodyType<PrayerRequestInput>},
+        TContext
+      > => {
+      return useMutation(getCreatePrayerRequestMutationOptions(options));
+    }
+
+export const getGetPrayerRequestUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}`
+}
+
+/**
+ * @summary Get prayer request detail
+ */
+export const getPrayerRequest = async (groupId: string,
+    requestId: string, options?: RequestInit): Promise<PrayerRequestDetail> => {
+
+  return customFetch<PrayerRequestDetail>(getGetPrayerRequestUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPrayerRequestQueryKey = (groupId: string,
+    requestId: string,) => {
+    return [
+    `/api/groups/${groupId}/requests/${requestId}`
+    ] as const;
+    }
+
+
+export const getGetPrayerRequestQueryOptions = <TData = Awaited<ReturnType<typeof getPrayerRequest>>, TError = ErrorType<void>>(groupId: string,
+    requestId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPrayerRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPrayerRequestQueryKey(groupId,requestId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPrayerRequest>>> = ({ signal }) => getPrayerRequest(groupId,requestId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId && requestId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPrayerRequest>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPrayerRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getPrayerRequest>>>
+export type GetPrayerRequestQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get prayer request detail
+ */
+
+export function useGetPrayerRequest<TData = Awaited<ReturnType<typeof getPrayerRequest>>, TError = ErrorType<void>>(
+ groupId: string,
+    requestId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPrayerRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPrayerRequestQueryOptions(groupId,requestId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdatePrayerRequestUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}`
+}
+
+/**
+ * @summary Update a prayer request (author or admin/moderator)
+ */
+export const updatePrayerRequest = async (groupId: string,
+    requestId: string,
+    prayerRequestPatch: PrayerRequestPatch, options?: RequestInit): Promise<PrayerRequestDetail> => {
+
+  return customFetch<PrayerRequestDetail>(getUpdatePrayerRequestUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      prayerRequestPatch,)
+  }
+);}
+
+
+
+
+export const getUpdatePrayerRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePrayerRequest>>, TError,{groupId: string;requestId: string;data: BodyType<PrayerRequestPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePrayerRequest>>, TError,{groupId: string;requestId: string;data: BodyType<PrayerRequestPatch>}, TContext> => {
+
+const mutationKey = ['updatePrayerRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePrayerRequest>>, {groupId: string;requestId: string;data: BodyType<PrayerRequestPatch>}> = (props) => {
+          const {groupId,requestId,data} = props ?? {};
+
+          return  updatePrayerRequest(groupId,requestId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePrayerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updatePrayerRequest>>>
+    export type UpdatePrayerRequestMutationBody = BodyType<PrayerRequestPatch>
+    export type UpdatePrayerRequestMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a prayer request (author or admin/moderator)
+ */
+export const useUpdatePrayerRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePrayerRequest>>, TError,{groupId: string;requestId: string;data: BodyType<PrayerRequestPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updatePrayerRequest>>,
+        TError,
+        {groupId: string;requestId: string;data: BodyType<PrayerRequestPatch>},
+        TContext
+      > => {
+      return useMutation(getUpdatePrayerRequestMutationOptions(options));
+    }
+
+export const getDeletePrayerRequestUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}`
+}
+
+/**
+ * @summary Delete a prayer request (author or admin)
+ */
+export const deletePrayerRequest = async (groupId: string,
+    requestId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeletePrayerRequestUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeletePrayerRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePrayerRequest>>, TError,{groupId: string;requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePrayerRequest>>, TError,{groupId: string;requestId: string}, TContext> => {
+
+const mutationKey = ['deletePrayerRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePrayerRequest>>, {groupId: string;requestId: string}> = (props) => {
+          const {groupId,requestId} = props ?? {};
+
+          return  deletePrayerRequest(groupId,requestId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePrayerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deletePrayerRequest>>>
+
+    export type DeletePrayerRequestMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a prayer request (author or admin)
+ */
+export const useDeletePrayerRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePrayerRequest>>, TError,{groupId: string;requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deletePrayerRequest>>,
+        TError,
+        {groupId: string;requestId: string},
+        TContext
+      > => {
+      return useMutation(getDeletePrayerRequestMutationOptions(options));
+    }
+
+export const getToggleCommitmentUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}/commit`
+}
+
+/**
+ * @summary Toggle "I am praying" commitment for a prayer request
+ */
+export const toggleCommitment = async (groupId: string,
+    requestId: string, options?: RequestInit): Promise<CommitmentStatus> => {
+
+  return customFetch<CommitmentStatus>(getToggleCommitmentUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getToggleCommitmentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleCommitment>>, TError,{groupId: string;requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof toggleCommitment>>, TError,{groupId: string;requestId: string}, TContext> => {
+
+const mutationKey = ['toggleCommitment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleCommitment>>, {groupId: string;requestId: string}> = (props) => {
+          const {groupId,requestId} = props ?? {};
+
+          return  toggleCommitment(groupId,requestId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ToggleCommitmentMutationResult = NonNullable<Awaited<ReturnType<typeof toggleCommitment>>>
+
+    export type ToggleCommitmentMutationError = ErrorType<void>
+
+    /**
+ * @summary Toggle "I am praying" commitment for a prayer request
+ */
+export const useToggleCommitment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleCommitment>>, TError,{groupId: string;requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof toggleCommitment>>,
+        TError,
+        {groupId: string;requestId: string},
+        TContext
+      > => {
+      return useMutation(getToggleCommitmentMutationOptions(options));
+    }
+
+export const getListCommentsUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}/comments`
+}
+
+/**
+ * @summary List comments on a prayer request
+ */
+export const listComments = async (groupId: string,
+    requestId: string, options?: RequestInit): Promise<PrayerCommentItem[]> => {
+
+  return customFetch<PrayerCommentItem[]>(getListCommentsUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCommentsQueryKey = (groupId: string,
+    requestId: string,) => {
+    return [
+    `/api/groups/${groupId}/requests/${requestId}/comments`
+    ] as const;
+    }
+
+
+export const getListCommentsQueryOptions = <TData = Awaited<ReturnType<typeof listComments>>, TError = ErrorType<void>>(groupId: string,
+    requestId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCommentsQueryKey(groupId,requestId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listComments>>> = ({ signal }) => listComments(groupId,requestId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId && requestId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listComments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCommentsQueryResult = NonNullable<Awaited<ReturnType<typeof listComments>>>
+export type ListCommentsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List comments on a prayer request
+ */
+
+export function useListComments<TData = Awaited<ReturnType<typeof listComments>>, TError = ErrorType<void>>(
+ groupId: string,
+    requestId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCommentsQueryOptions(groupId,requestId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddCommentUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}/comments`
+}
+
+/**
+ * @summary Add a comment to a prayer request
+ */
+export const addComment = async (groupId: string,
+    requestId: string,
+    commentInput: CommentInput, options?: RequestInit): Promise<PrayerCommentItem> => {
+
+  return customFetch<PrayerCommentItem>(getAddCommentUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      commentInput,)
+  }
+);}
+
+
+
+
+export const getAddCommentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addComment>>, TError,{groupId: string;requestId: string;data: BodyType<CommentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addComment>>, TError,{groupId: string;requestId: string;data: BodyType<CommentInput>}, TContext> => {
+
+const mutationKey = ['addComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addComment>>, {groupId: string;requestId: string;data: BodyType<CommentInput>}> = (props) => {
+          const {groupId,requestId,data} = props ?? {};
+
+          return  addComment(groupId,requestId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddCommentMutationResult = NonNullable<Awaited<ReturnType<typeof addComment>>>
+    export type AddCommentMutationBody = BodyType<CommentInput>
+    export type AddCommentMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a comment to a prayer request
+ */
+export const useAddComment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addComment>>, TError,{groupId: string;requestId: string;data: BodyType<CommentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addComment>>,
+        TError,
+        {groupId: string;requestId: string;data: BodyType<CommentInput>},
+        TContext
+      > => {
+      return useMutation(getAddCommentMutationOptions(options));
+    }
+
+export const getDeleteCommentUrl = (groupId: string,
+    requestId: string,
+    commentId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}/comments/${commentId}`
+}
+
+/**
+ * @summary Delete a comment (own comment or admin/moderator)
+ */
+export const deleteComment = async (groupId: string,
+    requestId: string,
+    commentId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteCommentUrl(groupId,requestId,commentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCommentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteComment>>, TError,{groupId: string;requestId: string;commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteComment>>, TError,{groupId: string;requestId: string;commentId: string}, TContext> => {
+
+const mutationKey = ['deleteComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteComment>>, {groupId: string;requestId: string;commentId: string}> = (props) => {
+          const {groupId,requestId,commentId} = props ?? {};
+
+          return  deleteComment(groupId,requestId,commentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCommentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteComment>>>
+
+    export type DeleteCommentMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a comment (own comment or admin/moderator)
+ */
+export const useDeleteComment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteComment>>, TError,{groupId: string;requestId: string;commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteComment>>,
+        TError,
+        {groupId: string;requestId: string;commentId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteCommentMutationOptions(options));
+    }
+
+export const getAddPrayerUpdateUrl = (groupId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/groups/${groupId}/requests/${requestId}/updates`
+}
+
+/**
+ * @summary Add an update to a prayer request (with optional status transition)
+ */
+export const addPrayerUpdate = async (groupId: string,
+    requestId: string,
+    prayerUpdateInput: PrayerUpdateInput, options?: RequestInit): Promise<PrayerRequestDetail> => {
+
+  return customFetch<PrayerRequestDetail>(getAddPrayerUpdateUrl(groupId,requestId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      prayerUpdateInput,)
+  }
+);}
+
+
+
+
+export const getAddPrayerUpdateMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPrayerUpdate>>, TError,{groupId: string;requestId: string;data: BodyType<PrayerUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addPrayerUpdate>>, TError,{groupId: string;requestId: string;data: BodyType<PrayerUpdateInput>}, TContext> => {
+
+const mutationKey = ['addPrayerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addPrayerUpdate>>, {groupId: string;requestId: string;data: BodyType<PrayerUpdateInput>}> = (props) => {
+          const {groupId,requestId,data} = props ?? {};
+
+          return  addPrayerUpdate(groupId,requestId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddPrayerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof addPrayerUpdate>>>
+    export type AddPrayerUpdateMutationBody = BodyType<PrayerUpdateInput>
+    export type AddPrayerUpdateMutationError = ErrorType<void>
+
+    /**
+ * @summary Add an update to a prayer request (with optional status transition)
+ */
+export const useAddPrayerUpdate = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPrayerUpdate>>, TError,{groupId: string;requestId: string;data: BodyType<PrayerUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addPrayerUpdate>>,
+        TError,
+        {groupId: string;requestId: string;data: BodyType<PrayerUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getAddPrayerUpdateMutationOptions(options));
+    }
+
+export const getGetPrayerHistoryUrl = (groupId: string,
+    params?: GetPrayerHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/groups/${groupId}/history?${stringifiedParams}` : `/api/groups/${groupId}/history`
+}
+
+/**
+ * @summary Get prayer history (closed and archived requests)
+ */
+export const getPrayerHistory = async (groupId: string,
+    params?: GetPrayerHistoryParams, options?: RequestInit): Promise<PrayerRequestSummary[]> => {
+
+  return customFetch<PrayerRequestSummary[]>(getGetPrayerHistoryUrl(groupId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPrayerHistoryQueryKey = (groupId: string,
+    params?: GetPrayerHistoryParams,) => {
+    return [
+    `/api/groups/${groupId}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPrayerHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getPrayerHistory>>, TError = ErrorType<void>>(groupId: string,
+    params?: GetPrayerHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPrayerHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPrayerHistoryQueryKey(groupId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPrayerHistory>>> = ({ signal }) => getPrayerHistory(groupId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(groupId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPrayerHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPrayerHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getPrayerHistory>>>
+export type GetPrayerHistoryQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get prayer history (closed and archived requests)
+ */
+
+export function useGetPrayerHistory<TData = Awaited<ReturnType<typeof getPrayerHistory>>, TError = ErrorType<void>>(
+ groupId: string,
+    params?: GetPrayerHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPrayerHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPrayerHistoryQueryOptions(groupId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

@@ -143,7 +143,7 @@ export default function GroupDashboard() {
           icon={Plus}
           title="Add Prayer Request"
           description="Share a request with the group"
-          onClick={() => toast({ title: "Coming in Phase 3", description: "Prayer requests are coming soon!" })}
+          onClick={() => setLocation(`/app/groups/${groupId}/requests/new`)}
           testId="btn-add-request"
         />
         <ActionCard
@@ -194,20 +194,31 @@ export default function GroupDashboard() {
         )}
       </section>
 
-      <section className="bg-card border border-border rounded-3xl p-8 text-center">
-        <div className="w-14 h-14 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-          <Plus className="w-7 h-7 text-muted-foreground" />
+      <section className="bg-card border border-border rounded-3xl p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+            <Flame className="w-4 h-4 text-primary" /> Prayer Requests
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/app/groups/${groupId}/requests`)}
+            className="text-primary hover:text-primary rounded-full text-sm"
+            data-testid="btn-view-all-requests"
+          >
+            View All →
+          </Button>
         </div>
-        <p className="text-muted-foreground text-sm">
-          No prayer requests yet. Add the first one to get started.
+        <p className="text-sm text-muted-foreground">
+          Share needs, commit to pray, and celebrate answered prayers.
         </p>
         <Button
-          variant="outline"
-          className="mt-4 rounded-full"
-          onClick={() => toast({ title: "Coming in Phase 3", description: "Prayer requests are coming soon!" })}
-          data-testid="btn-add-first-request"
+          className="w-full rounded-2xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
+          variant="ghost"
+          onClick={() => setLocation(`/app/groups/${groupId}/requests`)}
+          data-testid="btn-open-requests"
         >
-          Add Prayer Request
+          Open Prayer Requests
         </Button>
       </section>
     </div>

@@ -293,3 +293,262 @@ export interface InvitePreview {
   isExpired: boolean;
 }
 
+export interface PrayerCategory {
+  id: string;
+  groupId: string;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  icon?: string | null;
+  /** @nullable */
+  color?: string | null;
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CategoryInput {
+  /** @minLength 1 */
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface CategoryPatch {
+  /** @minLength 1 */
+  name?: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  isActive?: boolean;
+}
+
+export type PrayerRequestSummaryUrgency = typeof PrayerRequestSummaryUrgency[keyof typeof PrayerRequestSummaryUrgency];
+
+
+export const PrayerRequestSummaryUrgency = {
+  normal: 'normal',
+  important: 'important',
+  urgent: 'urgent',
+} as const;
+
+export type PrayerRequestSummaryStatus = typeof PrayerRequestSummaryStatus[keyof typeof PrayerRequestSummaryStatus];
+
+
+export const PrayerRequestSummaryStatus = {
+  active: 'active',
+  follow_up: 'follow_up',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export interface PrayerRequestSummary {
+  id: string;
+  groupId: string;
+  title: string;
+  /** @nullable */
+  prayerPersonName?: string | null;
+  /** @nullable */
+  prayerPersonInitials?: string | null;
+  /** @nullable */
+  categoryId?: string | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  categoryColor?: string | null;
+  /** @nullable */
+  categoryIcon?: string | null;
+  urgency: PrayerRequestSummaryUrgency;
+  status: PrayerRequestSummaryStatus;
+  /** @nullable */
+  closureReason?: string | null;
+  isAnonymous: boolean;
+  allowComments: boolean;
+  /** @nullable */
+  importantDate?: string | null;
+  /** @nullable */
+  authorId?: string | null;
+  /** @nullable */
+  authorName?: string | null;
+  commitmentCount: number;
+  iCommitted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  /** @nullable */
+  closedAt?: string | null;
+}
+
+export interface PrayerUpdateItem {
+  id: string;
+  updateText: string;
+  /** @nullable */
+  authorName?: string | null;
+  createdAt: string;
+}
+
+export type PrayerRequestDetailUrgency = typeof PrayerRequestDetailUrgency[keyof typeof PrayerRequestDetailUrgency];
+
+
+export const PrayerRequestDetailUrgency = {
+  normal: 'normal',
+  important: 'important',
+  urgent: 'urgent',
+} as const;
+
+export type PrayerRequestDetailStatus = typeof PrayerRequestDetailStatus[keyof typeof PrayerRequestDetailStatus];
+
+
+export const PrayerRequestDetailStatus = {
+  active: 'active',
+  follow_up: 'follow_up',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export interface PrayerRequestDetail {
+  id: string;
+  groupId: string;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  prayerPersonName?: string | null;
+  /** @nullable */
+  prayerPersonInitials?: string | null;
+  /** @nullable */
+  categoryId?: string | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  categoryColor?: string | null;
+  /** @nullable */
+  categoryIcon?: string | null;
+  urgency: PrayerRequestDetailUrgency;
+  status: PrayerRequestDetailStatus;
+  /** @nullable */
+  closureReason?: string | null;
+  isAnonymous: boolean;
+  allowComments: boolean;
+  /** @nullable */
+  importantDate?: string | null;
+  /** @nullable */
+  answeredTestimony?: string | null;
+  /** @nullable */
+  closedNote?: string | null;
+  /** @nullable */
+  authorId?: string | null;
+  /** @nullable */
+  authorName?: string | null;
+  isMyRequest: boolean;
+  commitmentCount: number;
+  iCommitted: boolean;
+  updates: PrayerUpdateItem[];
+  createdAt: string;
+  updatedAt: string;
+  /** @nullable */
+  closedAt?: string | null;
+  /** @nullable */
+  archivedAt?: string | null;
+}
+
+export type PrayerRequestInputUrgency = typeof PrayerRequestInputUrgency[keyof typeof PrayerRequestInputUrgency];
+
+
+export const PrayerRequestInputUrgency = {
+  normal: 'normal',
+  important: 'important',
+  urgent: 'urgent',
+} as const;
+
+export interface PrayerRequestInput {
+  /** @minLength 1 */
+  title: string;
+  description?: string;
+  prayerPersonName?: string;
+  categoryId?: string;
+  urgency?: PrayerRequestInputUrgency;
+  isAnonymous?: boolean;
+  allowComments?: boolean;
+  importantDate?: string;
+}
+
+export type PrayerRequestPatchUrgency = typeof PrayerRequestPatchUrgency[keyof typeof PrayerRequestPatchUrgency];
+
+
+export const PrayerRequestPatchUrgency = {
+  normal: 'normal',
+  important: 'important',
+  urgent: 'urgent',
+} as const;
+
+export interface PrayerRequestPatch {
+  /** @minLength 1 */
+  title?: string;
+  description?: string;
+  prayerPersonName?: string;
+  categoryId?: string;
+  urgency?: PrayerRequestPatchUrgency;
+  isAnonymous?: boolean;
+  allowComments?: boolean;
+  importantDate?: string;
+}
+
+export type PrayerUpdateInputNewStatus = typeof PrayerUpdateInputNewStatus[keyof typeof PrayerUpdateInputNewStatus];
+
+
+export const PrayerUpdateInputNewStatus = {
+  active: 'active',
+  follow_up: 'follow_up',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export type PrayerUpdateInputClosureReason = typeof PrayerUpdateInputClosureReason[keyof typeof PrayerUpdateInputClosureReason];
+
+
+export const PrayerUpdateInputClosureReason = {
+  no_longer_needed: 'no_longer_needed',
+  answered_prayer: 'answered_prayer',
+} as const;
+
+export interface PrayerUpdateInput {
+  /** @minLength 1 */
+  updateText: string;
+  newStatus?: PrayerUpdateInputNewStatus;
+  closureReason?: PrayerUpdateInputClosureReason;
+  testimony?: string;
+  closingNote?: string;
+}
+
+export interface CommentInput {
+  /** @minLength 1 */
+  comment: string;
+}
+
+export interface PrayerCommentItem {
+  id: string;
+  comment: string;
+  authorId: string;
+  /** @nullable */
+  authorName?: string | null;
+  isMyComment: boolean;
+  createdAt: string;
+}
+
+export interface CommitmentStatus {
+  commitmentCount: number;
+  iCommitted: boolean;
+}
+
+export type ListPrayerRequestsParams = {
+status?: string;
+categoryId?: string;
+urgency?: string;
+};
+
+export type GetPrayerHistoryParams = {
+closureReason?: string;
+};
+

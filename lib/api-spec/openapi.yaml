@@ -480,6 +480,464 @@ paths:
         "404":
           description: Invite not found
 
+  /groups/{groupId}/categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all active categories for a group
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrayerCategory"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a custom prayer category (admin only)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerCategory"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Admin role required
+
+  /groups/{groupId}/categories/{categoryId}:
+    patch:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update a category (admin only)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryPatch"
+      responses:
+        "200":
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerCategory"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Admin role required
+        "404":
+          description: Category not found
+
+  /groups/{groupId}/requests:
+    get:
+      operationId: listPrayerRequests
+      tags: [prayers]
+      summary: List prayer requests for a group
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: urgency
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of prayer requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrayerRequestSummary"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+    post:
+      operationId: createPrayerRequest
+      tags: [prayers]
+      summary: Create a new prayer request
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrayerRequestInput"
+      responses:
+        "201":
+          description: Prayer request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerRequestDetail"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+
+  /groups/{groupId}/requests/{requestId}:
+    get:
+      operationId: getPrayerRequest
+      tags: [prayers]
+      summary: Get prayer request detail
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Prayer request detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerRequestDetail"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+        "404":
+          description: Prayer request not found
+    patch:
+      operationId: updatePrayerRequest
+      tags: [prayers]
+      summary: Update a prayer request (author or admin/moderator)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrayerRequestPatch"
+      responses:
+        "200":
+          description: Prayer request updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerRequestDetail"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Prayer request not found
+    delete:
+      operationId: deletePrayerRequest
+      tags: [prayers]
+      summary: Delete a prayer request (author or admin)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Prayer request deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Prayer request not found
+
+  /groups/{groupId}/requests/{requestId}/commit:
+    post:
+      operationId: toggleCommitment
+      tags: [prayers]
+      summary: Toggle "I am praying" commitment for a prayer request
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Commitment toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommitmentStatus"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+
+  /groups/{groupId}/requests/{requestId}/comments:
+    get:
+      operationId: listComments
+      tags: [prayers]
+      summary: List comments on a prayer request
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrayerCommentItem"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+    post:
+      operationId: addComment
+      tags: [prayers]
+      summary: Add a comment to a prayer request
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerCommentItem"
+        "400":
+          description: Comments disabled for this request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+
+  /groups/{groupId}/requests/{requestId}/comments/{commentId}:
+    delete:
+      operationId: deleteComment
+      tags: [prayers]
+      summary: Delete a comment (own comment or admin/moderator)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Comment deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Comment not found
+
+  /groups/{groupId}/requests/{requestId}/updates:
+    post:
+      operationId: addPrayerUpdate
+      tags: [prayers]
+      summary: Add an update to a prayer request (with optional status transition)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrayerUpdateInput"
+      responses:
+        "201":
+          description: Update added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrayerRequestDetail"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Prayer request not found
+
+  /groups/{groupId}/history:
+    get:
+      operationId: getPrayerHistory
+      tags: [prayers]
+      summary: Get prayer history (closed and archived requests)
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: closureReason
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of closed/archived prayer requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrayerRequestSummary"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not a group member
+
 components:
   securitySchemes:
     clerkAuth:
@@ -878,3 +1336,327 @@ components:
         - groupName
         - status
         - isExpired
+
+    PrayerCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        icon:
+          type: ["string", "null"]
+        color:
+          type: ["string", "null"]
+        isDefault:
+          type: boolean
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - groupId
+        - name
+        - isDefault
+        - isActive
+        - createdAt
+
+    CategoryInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+      required:
+        - name
+
+    CategoryPatch:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+        isActive:
+          type: boolean
+
+    PrayerRequestSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        title:
+          type: string
+        prayerPersonName:
+          type: ["string", "null"]
+        prayerPersonInitials:
+          type: ["string", "null"]
+        categoryId:
+          type: ["string", "null"]
+        categoryName:
+          type: ["string", "null"]
+        categoryColor:
+          type: ["string", "null"]
+        categoryIcon:
+          type: ["string", "null"]
+        urgency:
+          type: string
+          enum: [normal, important, urgent]
+        status:
+          type: string
+          enum: [active, follow_up, closed, archived]
+        closureReason:
+          type: ["string", "null"]
+        isAnonymous:
+          type: boolean
+        allowComments:
+          type: boolean
+        importantDate:
+          type: ["string", "null"]
+        authorId:
+          type: ["string", "null"]
+        authorName:
+          type: ["string", "null"]
+        commitmentCount:
+          type: integer
+        iCommitted:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        closedAt:
+          type: ["string", "null"]
+      required:
+        - id
+        - groupId
+        - title
+        - urgency
+        - status
+        - isAnonymous
+        - allowComments
+        - commitmentCount
+        - iCommitted
+        - createdAt
+        - updatedAt
+
+    PrayerUpdateItem:
+      type: object
+      properties:
+        id:
+          type: string
+        updateText:
+          type: string
+        authorName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - updateText
+        - createdAt
+
+    PrayerRequestDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        prayerPersonName:
+          type: ["string", "null"]
+        prayerPersonInitials:
+          type: ["string", "null"]
+        categoryId:
+          type: ["string", "null"]
+        categoryName:
+          type: ["string", "null"]
+        categoryColor:
+          type: ["string", "null"]
+        categoryIcon:
+          type: ["string", "null"]
+        urgency:
+          type: string
+          enum: [normal, important, urgent]
+        status:
+          type: string
+          enum: [active, follow_up, closed, archived]
+        closureReason:
+          type: ["string", "null"]
+        isAnonymous:
+          type: boolean
+        allowComments:
+          type: boolean
+        importantDate:
+          type: ["string", "null"]
+        answeredTestimony:
+          type: ["string", "null"]
+        closedNote:
+          type: ["string", "null"]
+        authorId:
+          type: ["string", "null"]
+        authorName:
+          type: ["string", "null"]
+        isMyRequest:
+          type: boolean
+        commitmentCount:
+          type: integer
+        iCommitted:
+          type: boolean
+        updates:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrayerUpdateItem"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        closedAt:
+          type: ["string", "null"]
+        archivedAt:
+          type: ["string", "null"]
+      required:
+        - id
+        - groupId
+        - title
+        - urgency
+        - status
+        - isAnonymous
+        - allowComments
+        - isMyRequest
+        - commitmentCount
+        - iCommitted
+        - updates
+        - createdAt
+        - updatedAt
+
+    PrayerRequestInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        prayerPersonName:
+          type: string
+        categoryId:
+          type: string
+        urgency:
+          type: string
+          enum: [normal, important, urgent]
+        isAnonymous:
+          type: boolean
+        allowComments:
+          type: boolean
+        importantDate:
+          type: string
+          format: date-time
+      required:
+        - title
+
+    PrayerRequestPatch:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        prayerPersonName:
+          type: string
+        categoryId:
+          type: string
+        urgency:
+          type: string
+          enum: [normal, important, urgent]
+        isAnonymous:
+          type: boolean
+        allowComments:
+          type: boolean
+        importantDate:
+          type: string
+          format: date-time
+
+    PrayerUpdateInput:
+      type: object
+      properties:
+        updateText:
+          type: string
+          minLength: 1
+        newStatus:
+          type: string
+          enum: [active, follow_up, closed, archived]
+        closureReason:
+          type: string
+          enum: [no_longer_needed, answered_prayer]
+        testimony:
+          type: string
+        closingNote:
+          type: string
+      required:
+        - updateText
+
+    CommentInput:
+      type: object
+      properties:
+        comment:
+          type: string
+          minLength: 1
+      required:
+        - comment
+
+    PrayerCommentItem:
+      type: object
+      properties:
+        id:
+          type: string
+        comment:
+          type: string
+        authorId:
+          type: string
+        authorName:
+          type: ["string", "null"]
+        isMyComment:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - comment
+        - authorId
+        - isMyComment
+        - createdAt
+
+    CommitmentStatus:
+      type: object
+      properties:
+        commitmentCount:
+          type: integer
+        iCommitted:
+          type: boolean
+      required:
+        - commitmentCount
+        - iCommitted

@@ -403,3 +403,366 @@ export const DeclineInviteParams = zod.object({
 })
 
 
+/**
+ * @summary List all active categories for a group
+ */
+export const ListCategoriesParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListCategoriesResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "icon": zod.string().nullish(),
+  "color": zod.string().nullish(),
+  "isDefault": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem)
+
+
+/**
+ * @summary Create a custom prayer category (admin only)
+ */
+export const CreateCategoryParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+
+
+
+export const CreateCategoryBody = zod.object({
+  "name": zod.string().min(1),
+  "description": zod.string().optional(),
+  "icon": zod.string().optional(),
+  "color": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a category (admin only)
+ */
+export const UpdateCategoryParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "categoryId": zod.coerce.string()
+})
+
+
+
+
+export const UpdateCategoryBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "icon": zod.string().optional(),
+  "color": zod.string().optional(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateCategoryResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "icon": zod.string().nullish(),
+  "color": zod.string().nullish(),
+  "isDefault": zod.boolean(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List prayer requests for a group
+ */
+export const ListPrayerRequestsParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListPrayerRequestsQueryParams = zod.object({
+  "status": zod.coerce.string().optional(),
+  "categoryId": zod.coerce.string().optional(),
+  "urgency": zod.coerce.string().optional()
+})
+
+export const ListPrayerRequestsResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "title": zod.string(),
+  "prayerPersonName": zod.string().nullish(),
+  "prayerPersonInitials": zod.string().nullish(),
+  "categoryId": zod.string().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "urgency": zod.enum(['normal', 'important', 'urgent']),
+  "status": zod.enum(['active', 'follow_up', 'closed', 'archived']),
+  "closureReason": zod.string().nullish(),
+  "isAnonymous": zod.boolean(),
+  "allowComments": zod.boolean(),
+  "importantDate": zod.string().nullish(),
+  "authorId": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "commitmentCount": zod.number(),
+  "iCommitted": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "closedAt": zod.string().nullish()
+})
+export const ListPrayerRequestsResponse = zod.array(ListPrayerRequestsResponseItem)
+
+
+/**
+ * @summary Create a new prayer request
+ */
+export const CreatePrayerRequestParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+
+
+
+export const CreatePrayerRequestBody = zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().optional(),
+  "prayerPersonName": zod.string().optional(),
+  "categoryId": zod.string().optional(),
+  "urgency": zod.enum(['normal', 'important', 'urgent']).optional(),
+  "isAnonymous": zod.boolean().optional(),
+  "allowComments": zod.boolean().optional(),
+  "importantDate": zod.coerce.date().optional()
+})
+
+
+/**
+ * @summary Get prayer request detail
+ */
+export const GetPrayerRequestParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const GetPrayerRequestResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "prayerPersonName": zod.string().nullish(),
+  "prayerPersonInitials": zod.string().nullish(),
+  "categoryId": zod.string().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "urgency": zod.enum(['normal', 'important', 'urgent']),
+  "status": zod.enum(['active', 'follow_up', 'closed', 'archived']),
+  "closureReason": zod.string().nullish(),
+  "isAnonymous": zod.boolean(),
+  "allowComments": zod.boolean(),
+  "importantDate": zod.string().nullish(),
+  "answeredTestimony": zod.string().nullish(),
+  "closedNote": zod.string().nullish(),
+  "authorId": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "isMyRequest": zod.boolean(),
+  "commitmentCount": zod.number(),
+  "iCommitted": zod.boolean(),
+  "updates": zod.array(zod.object({
+  "id": zod.string(),
+  "updateText": zod.string(),
+  "authorName": zod.string().nullish(),
+  "createdAt": zod.string()
+})),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "closedAt": zod.string().nullish(),
+  "archivedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update a prayer request (author or admin/moderator)
+ */
+export const UpdatePrayerRequestParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+
+
+
+export const UpdatePrayerRequestBody = zod.object({
+  "title": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "prayerPersonName": zod.string().optional(),
+  "categoryId": zod.string().optional(),
+  "urgency": zod.enum(['normal', 'important', 'urgent']).optional(),
+  "isAnonymous": zod.boolean().optional(),
+  "allowComments": zod.boolean().optional(),
+  "importantDate": zod.coerce.date().optional()
+})
+
+export const UpdatePrayerRequestResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "prayerPersonName": zod.string().nullish(),
+  "prayerPersonInitials": zod.string().nullish(),
+  "categoryId": zod.string().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "urgency": zod.enum(['normal', 'important', 'urgent']),
+  "status": zod.enum(['active', 'follow_up', 'closed', 'archived']),
+  "closureReason": zod.string().nullish(),
+  "isAnonymous": zod.boolean(),
+  "allowComments": zod.boolean(),
+  "importantDate": zod.string().nullish(),
+  "answeredTestimony": zod.string().nullish(),
+  "closedNote": zod.string().nullish(),
+  "authorId": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "isMyRequest": zod.boolean(),
+  "commitmentCount": zod.number(),
+  "iCommitted": zod.boolean(),
+  "updates": zod.array(zod.object({
+  "id": zod.string(),
+  "updateText": zod.string(),
+  "authorName": zod.string().nullish(),
+  "createdAt": zod.string()
+})),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "closedAt": zod.string().nullish(),
+  "archivedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete a prayer request (author or admin)
+ */
+export const DeletePrayerRequestParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+
+/**
+ * @summary Toggle "I am praying" commitment for a prayer request
+ */
+export const ToggleCommitmentParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const ToggleCommitmentResponse = zod.object({
+  "commitmentCount": zod.number(),
+  "iCommitted": zod.boolean()
+})
+
+
+/**
+ * @summary List comments on a prayer request
+ */
+export const ListCommentsParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const ListCommentsResponseItem = zod.object({
+  "id": zod.string(),
+  "comment": zod.string(),
+  "authorId": zod.string(),
+  "authorName": zod.string().nullish(),
+  "isMyComment": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListCommentsResponse = zod.array(ListCommentsResponseItem)
+
+
+/**
+ * @summary Add a comment to a prayer request
+ */
+export const AddCommentParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+
+
+
+export const AddCommentBody = zod.object({
+  "comment": zod.string().min(1)
+})
+
+
+/**
+ * @summary Delete a comment (own comment or admin/moderator)
+ */
+export const DeleteCommentParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string(),
+  "commentId": zod.coerce.string()
+})
+
+
+/**
+ * @summary Add an update to a prayer request (with optional status transition)
+ */
+export const AddPrayerUpdateParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+
+
+
+export const AddPrayerUpdateBody = zod.object({
+  "updateText": zod.string().min(1),
+  "newStatus": zod.enum(['active', 'follow_up', 'closed', 'archived']).optional(),
+  "closureReason": zod.enum(['no_longer_needed', 'answered_prayer']).optional(),
+  "testimony": zod.string().optional(),
+  "closingNote": zod.string().optional()
+})
+
+
+/**
+ * @summary Get prayer history (closed and archived requests)
+ */
+export const GetPrayerHistoryParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const GetPrayerHistoryQueryParams = zod.object({
+  "closureReason": zod.coerce.string().optional()
+})
+
+export const GetPrayerHistoryResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "title": zod.string(),
+  "prayerPersonName": zod.string().nullish(),
+  "prayerPersonInitials": zod.string().nullish(),
+  "categoryId": zod.string().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "urgency": zod.enum(['normal', 'important', 'urgent']),
+  "status": zod.enum(['active', 'follow_up', 'closed', 'archived']),
+  "closureReason": zod.string().nullish(),
+  "isAnonymous": zod.boolean(),
+  "allowComments": zod.boolean(),
+  "importantDate": zod.string().nullish(),
+  "authorId": zod.string().nullish(),
+  "authorName": zod.string().nullish(),
+  "commitmentCount": zod.number(),
+  "iCommitted": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "closedAt": zod.string().nullish()
+})
+export const GetPrayerHistoryResponse = zod.array(GetPrayerHistoryResponseItem)
+
+
