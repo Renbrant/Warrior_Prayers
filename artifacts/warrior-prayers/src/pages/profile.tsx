@@ -137,16 +137,18 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      form.reset({
-        fullName: user.fullName ?? "",
-        profilePhotoUrl: user.profilePhotoUrl ?? "",
-        phone: user.phone ?? "",
-        churchName: user.churchName ?? "",
-        city: user.city ?? "",
-        preferredLanguage: (user.preferredLanguage as "en" | "pt" | "es") ?? "en",
-      });
+      form.setValue("fullName", user.fullName ?? "");
+      form.setValue("profilePhotoUrl", user.profilePhotoUrl ?? "");
+      form.setValue("phone", user.phone ?? "");
+      form.setValue("churchName", user.churchName ?? "");
+      form.setValue("city", user.city ?? "");
+      form.setValue(
+        "preferredLanguage",
+        (user.preferredLanguage as "en" | "pt" | "es") ?? "en",
+      );
     }
-  }, [user, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const onSubmit = (data: ProfileValues) => {
     i18n.changeLanguage(data.preferredLanguage);

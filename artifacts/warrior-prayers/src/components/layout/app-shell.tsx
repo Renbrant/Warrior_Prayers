@@ -1,12 +1,14 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Home, Users, Heart, Bell, User, ChevronRight, HandCoins } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   useListNotifications,
   useListMyGroups,
+  useGetMe,
   getListNotificationsQueryKey,
   getListMyGroupsQueryKey,
+  getGetMeQueryKey,
   type GroupSummary,
 } from "@workspace/api-client-react";
 
@@ -21,7 +23,22 @@ function NotificationBadge({ count }: { count: number }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const { data: me } = useGetMe({
+    query: { queryKey: getGetMeQueryKey(), staleTime: 300000 },
+  });
+
+  useEffect(() => {
+    if (me?.preferredLanguage) {
+      const lang = me.preferredLanguage;
+      if (["en", "pt", "es"].includes(lang) && lang !== i18n.language) {
+        i18n.changeLanguage(lang);
+        localStorage.setItem("language", lang);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.preferredLanguage]);
 
   const { data: notifData } = useListNotifications({
     query: {
