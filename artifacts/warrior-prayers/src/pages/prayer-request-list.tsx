@@ -127,7 +127,7 @@ export default function PrayerRequestList() {
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="follow_up">Follow-up</SelectItem>
             <SelectItem value="closed">Closed</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
+            {isAdmin && <SelectItem value="archived">Archived</SelectItem>}
           </SelectContent>
         </Select>
 

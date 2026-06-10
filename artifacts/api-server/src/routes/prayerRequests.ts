@@ -214,6 +214,7 @@ async function getGroupSettings(groupId: string) {
       hidePrayerPersonNames: prayerGroupsTable.hidePrayerPersonNames,
       adminsCanViewAnonymousAuthors: prayerGroupsTable.adminsCanViewAnonymousAuthors,
       allowComments: prayerGroupsTable.allowComments,
+      allowAnonymousRequests: prayerGroupsTable.allowAnonymousRequests,
     })
     .from(prayerGroupsTable)
     .where(eq(prayerGroupsTable.id, groupId))
@@ -312,6 +313,11 @@ router.post(
       const group = await getGroupSettings(groupId);
       if (!group) {
         res.status(404).json({ error: "Group not found" });
+        return;
+      }
+
+      if (body.isAnonymous && !group.allowAnonymousRequests) {
+        res.status(400).json({ error: "This group does not allow anonymous prayer requests" });
         return;
       }
 
@@ -442,6 +448,17 @@ router.patch(
         return;
       }
 
+      const group = await getGroupSettings(groupId);
+      if (!group) {
+        res.status(404).json({ error: "Group not found" });
+        return;
+      }
+
+      if (body.isAnonymous === true && !group.allowAnonymousRequests) {
+        res.status(400).json({ error: "This group does not allow anonymous prayer requests" });
+        return;
+      }
+
       const updates: Partial<typeof prayerRequestsTable.$inferInsert> = {
         updatedAt: new Date(),
       };
@@ -464,8 +481,6 @@ router.patch(
         .set(updates)
         .where(eq(prayerRequestsTable.id, requestId))
         .returning();
-
-      const group = await getGroupSettings(groupId);
       const { commitmentCount, iCommitted } = await getCommitmentInfo(requestId, userId);
       const category = await getCategory(updated.categoryId);
       const recentUpdates = await getRecentUpdates(requestId);
@@ -520,7 +535,12 @@ router.delete(
         return;
       }
 
-      await db.delete(prayerRequestsTable).where(eq(prayerRequestsTable.id, requestId));
+      await db.transaction(async (tx) => {
+        await tx.delete(prayerCommitmentsTable).where(eq(prayerCommitmentsTable.prayerRequestId, requestId));
+        await tx.delete(prayerCommentsTable).where(eq(prayerCommentsTable.prayerRequestId, requestId));
+        await tx.delete(prayerUpdatesTable).where(eq(prayerUpdatesTable.prayerRequestId, requestId));
+        await tx.delete(prayerRequestsTable).where(eq(prayerRequestsTable.id, requestId));
+      });
 
       res.status(204).send();
     } catch (err) {
