@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useUser } from "@clerk/react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
+import { User } from "lucide-react";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
@@ -65,12 +66,22 @@ export default function CompleteProfile() {
     }
   }, [user, clerkUser, form, setLocation]);
 
+  const photoUrl = useMemo(
+    () => user?.profilePhotoUrl || clerkUser?.imageUrl || null,
+    [user?.profilePhotoUrl, clerkUser?.imageUrl]
+  );
+
   const onSubmit = (data: ProfileValues) => {
     i18n.changeLanguage(data.preferredLanguage);
     localStorage.setItem("language", data.preferredLanguage);
 
+    const payload: Parameters<typeof updateMe.mutate>[0]["data"] = {
+      ...(data as Parameters<typeof updateMe.mutate>[0]["data"]),
+      ...(!user?.profilePhotoUrl && photoUrl ? { profilePhotoUrl: photoUrl } : {}),
+    };
+
     updateMe.mutate(
-      { data: data as Parameters<typeof updateMe.mutate>[0]["data"] },
+      { data: payload },
       {
         onSuccess: (updatedUser) => {
           queryClient.setQueryData(getGetMeQueryKey(), updatedUser);
@@ -93,6 +104,14 @@ export default function CompleteProfile() {
     <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-xl bg-card border border-border p-8 sm:p-12 rounded-[2.5rem] shadow-2xl">
         <div className="text-center mb-10">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center ring-2 ring-border">
+              {photoUrl
+                ? <img src={photoUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                : <User className="w-8 h-8 text-primary/60" />
+              }
+            </div>
+          </div>
           <h1 className="text-3xl font-extrabold text-foreground">{t("completeProfile.title")}</h1>
           <p className="text-muted-foreground mt-3 text-lg">{t("completeProfile.subtitle")}</p>
         </div>
