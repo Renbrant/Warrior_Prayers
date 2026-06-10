@@ -1,0 +1,1816 @@
+# Warrior Prayers — Replit Build Instructions
+
+Build a full-stack responsive web application called **Warrior Prayers**.
+
+This app is for private prayer groups where users can create invitation-only groups, share confidential prayer requests, pray through active requests, track updates, and record answered prayers.
+
+The app must be built inside **Replit** as a complete MVP.
+
+Before coding, create a short implementation plan, confirm the proposed stack, and list the database schema.
+
+Do not build everything at once. Build this application in phases to reduce errors.
+
+---
+
+# 1. Platform Requirement
+
+Build this application entirely inside Replit.
+
+Use Replit as the main platform for:
+
+* AI-assisted development
+* frontend
+* backend
+* database
+* authentication
+* environment variables
+* testing
+* deployment
+
+Avoid depending on external platforms unless absolutely necessary.
+
+Use Replit’s built-in capabilities where possible.
+
+If a feature is not natively supported by Replit, implement it with standard open-source libraries.
+
+---
+
+# 2. Recommended Stack
+
+Use this stack unless Replit has a better native recommendation:
+
+* Frontend: React
+* Styling: Tailwind CSS
+* Backend: Node.js with Express
+* Database: Replit managed SQL database or PostgreSQL-compatible database available in Replit
+* Authentication: Replit Auth where possible
+* Internationalization: i18next or a simple translation dictionary structure
+* Encryption: server-side encryption for sensitive fields using environment secrets
+* Deployment: Replit Deployments
+
+The code must be organized, readable, and easy to maintain.
+
+Use clear folder structure:
+
+* `/client`
+* `/server`
+* `/shared`
+* `/database`
+* `/utils`
+* `/i18n`
+* `/components`
+* `/pages`
+
+---
+
+# 3. Development Strategy
+
+Build the app in phases.
+
+Do not attempt to implement the entire final app in one single coding pass.
+
+Follow this sequence:
+
+1. Foundation
+2. Authentication and user profile
+3. Private prayer groups
+4. Group invitations and roles
+5. Prayer requests
+6. Privacy and encryption
+7. Prayer Mode
+8. Internationalization
+9. Responsive mobile-first design polish
+10. Security review
+
+At the end of each phase, make sure the app still runs without errors.
+
+---
+
+# 4. Application Name and Identity
+
+App name:
+
+**Warrior Prayers**
+
+Subtitle:
+
+**Private prayer groups for care and intercession.**
+
+Main landing page headline:
+
+**Organize private prayer groups with care, privacy, and purpose.**
+
+Landing page subheadline:
+
+**Create secure prayer groups, invite trusted people, share prayer requests, and walk together in intercession.**
+
+---
+
+# 5. Design Requirements
+
+The app must use a **mobile-first responsive dark theme**.
+
+The interface must be:
+
+* Clean
+* Modern
+* Calm
+* Premium
+* Focused
+* Trustworthy
+* Warm
+* Prayerful
+* Distraction-free
+
+The visual identity must use:
+
+* Dark background
+* Orange accents
+* Warm orange primary buttons
+* Burnt orange or amber secondary accents
+* Dark cards
+* Soft white text
+* Muted gray secondary text
+* Subtle dark borders
+* Rounded cards and buttons
+
+Do not create a light mode for the MVP.
+
+Primary theme:
+
+**Dark mode with orange accents**
+
+Avoid:
+
+* Bright white backgrounds
+* Childish colors
+* Excessive gradients
+* Neon orange
+* Visual clutter
+* Social-media-like UI
+
+Suggested visual direction:
+
+* Background: very dark charcoal or near black
+* Cards: dark gray or charcoal
+* Primary accent: warm orange
+* Secondary accent: burnt orange or amber
+* Text: soft white or light gray
+* Secondary text: muted gray
+
+---
+
+# 6. Responsive Layout Requirement
+
+Build the app as a **mobile-first responsive web app**.
+
+The phone experience is the priority.
+
+The app must work well on:
+
+* Mobile phones
+* Tablets
+* Laptops
+* Desktop computers
+
+On mobile:
+
+* Use a simple bottom navigation or compact menu.
+* Avoid horizontal scrolling.
+* Use large touch targets.
+* Keep key actions easy to reach.
+* Forms must be easy to complete on a phone.
+* Prayer Mode must be comfortable for longer prayer sessions.
+
+Suggested mobile navigation:
+
+* Home
+* Groups
+* Pray
+* Notifications
+* Profile
+
+On desktop:
+
+* Use a left sidebar navigation.
+* Use the wider screen space well.
+* Do not simply stretch the mobile layout.
+* Use optional right panels for filters, summaries, or prayer session progress.
+
+---
+
+# 7. Language and Internationalization
+
+The default app language must be **English**.
+
+The app must support:
+
+* English
+* Portuguese
+* Spanish
+
+Language codes:
+
+* English: `en`
+* Portuguese: `pt`
+* Spanish: `es`
+
+Do not hardcode user-facing text directly in components.
+
+Use translation keys.
+
+The user must be able to change language from:
+
+* Public landing page
+* Login screen
+* Sign-up screen
+* User profile
+* Settings menu
+
+After login, save the selected language in the user profile.
+
+If the user is not logged in, save the selected language locally in the browser.
+
+On first visit, detect browser language:
+
+* English browser: use English
+* Portuguese browser: suggest Portuguese
+* Spanish browser: suggest Spanish
+* Unsupported browser language: default to English
+
+---
+
+# 8. Authentication Requirements
+
+Users must be authenticated before accessing any internal area.
+
+Unauthenticated users must not access:
+
+* Prayer groups
+* Prayer requests
+* Prayer sessions
+* Group members
+* Comments
+* Updates
+* Invitations
+* Settings
+
+Support these login methods:
+
+* Email and password
+* Sign in with Google
+* Sign in with Apple, if supported
+* Sign in with Facebook, if feasible
+
+Use Replit Auth where possible.
+
+If Apple or Facebook login is not natively supported or would slow down the MVP, implement the authentication architecture so these providers can be added later. Do not block the MVP because of Apple or Facebook login.
+
+At minimum, the MVP must support:
+
+* Email/password login
+* Google login, if available in Replit Auth
+* Protected routes
+* Logout
+* Password recovery if email/password auth supports it
+
+Avoid duplicate accounts.
+
+If the same email logs in through different providers, link the provider or ask for secure account linking.
+
+---
+
+# 9. First Login Experience
+
+After first login, check whether the user profile is complete.
+
+Required fields:
+
+* Full name
+* Preferred language
+
+Optional fields:
+
+* Phone
+* Church or ministry
+* City
+* Profile picture
+
+The user should not need to complete optional fields to use the app.
+
+---
+
+# 10. Core Privacy Principle
+
+This application handles sensitive personal information.
+
+The highest priority is protecting prayer request confidentiality.
+
+Do not create public pages showing prayer requests.
+
+Do not allow public group search.
+
+Do not allow access without authentication.
+
+Do not allow access to a group without invitation.
+
+Do not allow one group’s data to leak into another group.
+
+Do not reveal hidden names in summaries, reports, notifications, Prayer Mode, or history.
+
+Do not reveal anonymous authors to regular members.
+
+All backend routes must validate user permissions.
+
+Frontend hiding is not enough.
+
+---
+
+# 11. Data Storage and Encryption
+
+Use a centralized database for:
+
+* Users
+* Groups
+* Memberships
+* Invitations
+* Roles
+* Prayer request metadata
+* Status
+* Categories
+* Prayer sessions
+* Notifications
+* Audit logs
+
+However, sensitive prayer content must not be stored in readable plain text.
+
+Encrypt sensitive fields before storing them.
+
+Sensitive fields include:
+
+* Prayer request description
+* Name of the person receiving prayer
+* Comments
+* Updates
+* Testimonies
+* Closing notes
+* Private notes
+
+Use server-side encryption for the MVP using an environment secret.
+
+Store the encryption secret in Replit Secrets or environment variables.
+
+Do not hardcode encryption keys.
+
+If possible, structure the code so group-based encryption can be added later.
+
+The preferred MVP architecture is:
+
+**Centralized database + encrypted sensitive fields + strict group access control + optional encrypted local cache later.**
+
+Do not use local-only browser storage as the primary source of truth.
+
+Local storage may be used only as cache or temporary draft storage.
+
+---
+
+# 12. Database Schema
+
+Create the following tables or equivalent collections.
+
+## users
+
+Fields:
+
+* id
+* full_name
+* email
+* password_hash, nullable if social login is used
+* phone
+* church_name
+* city
+* profile_photo_url
+* preferred_language
+* primary_auth_provider
+* connected_auth_providers
+* email_verified
+* created_at
+* updated_at
+* last_login_at
+
+Allowed provider values:
+
+* email
+* google
+* apple
+* facebook
+
+---
+
+## prayer_groups
+
+Fields:
+
+* id
+* name
+* description
+* church_name
+* city
+* image_url
+* verse
+* created_by_user_id
+* hide_prayer_person_names
+* allow_custom_categories
+* allow_comments
+* allow_anonymous_requests
+* admins_can_view_anonymous_authors
+* created_at
+* updated_at
+
+---
+
+## group_members
+
+Fields:
+
+* id
+* group_id
+* user_id
+* role
+* status
+* joined_at
+* invited_by_user_id
+
+Allowed role values:
+
+* admin
+* moderator
+* member
+
+Allowed status values:
+
+* active
+* removed
+* pending
+
+---
+
+## group_invites
+
+Fields:
+
+* id
+* group_id
+* invited_email
+* invited_by_user_id
+* token
+* status
+* expires_at
+* max_uses
+* used_count
+* created_at
+* accepted_at
+* revoked_at
+
+Allowed status values:
+
+* pending
+* accepted
+* declined
+* expired
+* revoked
+
+---
+
+## prayer_categories
+
+Fields:
+
+* id
+* group_id
+* name
+* description
+* icon
+* color
+* is_default
+* is_active
+* created_by_user_id
+* created_at
+* updated_at
+
+---
+
+## prayer_requests
+
+Fields:
+
+* id
+* group_id
+* created_by_user_id
+* title
+* description_encrypted
+* prayer_person_name_encrypted
+* prayer_person_initials
+* category_id
+* urgency
+* status
+* closure_reason
+* is_anonymous
+* allow_comments
+* important_date
+* answered_testimony_encrypted
+* closed_note_encrypted
+* created_at
+* updated_at
+* closed_at
+* archived_at
+
+Allowed urgency values:
+
+* normal
+* important
+* urgent
+
+Allowed status values:
+
+* active
+* follow_up
+* closed
+* archived
+
+Allowed closure reason values:
+
+* null
+* no_longer_needed
+* answered_prayer
+
+Rules:
+
+* If status is active, closure_reason must be null.
+* If status is follow_up, closure_reason must be null.
+* If status is closed, closure_reason is required.
+* If status is archived, closure_reason may be null or preserve previous closure reason.
+
+---
+
+## prayer_commitments
+
+Records users who clicked **I am praying**.
+
+Fields:
+
+* id
+* prayer_request_id
+* user_id
+* created_at
+
+---
+
+## prayer_comments
+
+Fields:
+
+* id
+* prayer_request_id
+* user_id
+* comment_encrypted
+* created_at
+* updated_at
+* deleted_at
+
+---
+
+## prayer_updates
+
+Fields:
+
+* id
+* prayer_request_id
+* user_id
+* update_text_encrypted
+* created_at
+* updated_at
+
+---
+
+## prayer_sessions
+
+Fields:
+
+* id
+* group_id
+* user_id
+* mode
+* organization_type
+* filters
+* started_at
+* completed_at
+
+Allowed mode values:
+
+* compact
+* detailed
+
+Allowed organization_type values:
+
+* priority
+* category
+
+---
+
+## prayer_session_items
+
+Fields:
+
+* id
+* prayer_session_id
+* prayer_request_id
+* prayed_at
+* skipped_at
+
+---
+
+## notifications
+
+Fields:
+
+* id
+* user_id
+* group_id
+* type
+* title
+* message
+* related_entity_type
+* related_entity_id
+* read_at
+* created_at
+
+---
+
+## audit_logs
+
+Fields:
+
+* id
+* user_id
+* group_id
+* action
+* entity_type
+* entity_id
+* metadata
+* created_at
+
+Use audit logs for:
+
+* Group created
+* Group settings changed
+* Invitation sent
+* Invitation revoked
+* Member removed
+* Role changed
+* Prayer request archived
+* Privacy setting changed
+
+---
+
+# 13. Group Access Rules
+
+Each group is private.
+
+No user can search public groups.
+
+No user can join a group without an invitation.
+
+No prayer request can be accessed by users outside the group.
+
+Every group-related backend route must validate:
+
+1. User is authenticated.
+2. User is an active group member.
+3. User has the required role or permission.
+
+Even if a user manually enters another group or prayer request URL, the backend must deny access unless the user is an active member of that group.
+
+---
+
+# 14. Group Roles
+
+## Administrator
+
+Can:
+
+* Edit group settings
+* Invite members
+* Remove members
+* Create categories
+* Edit categories
+* Archive inappropriate requests
+* View member list
+* Change member roles
+* Manage group permissions
+
+## Moderator
+
+Can:
+
+* Invite members, if allowed
+* Create categories, if allowed
+* Help organize requests
+* Archive requests, if allowed
+
+## Member
+
+Can:
+
+* Create prayer requests
+* View group prayer requests
+* Click “I am praying”
+* Comment, if comments are enabled
+* Add updates to their own requests
+* Close their own requests
+* Mark their own requests as answered or no longer needed
+
+---
+
+# 15. Default Prayer Categories
+
+Create default categories for each group:
+
+* Health
+* Family
+* Finances
+* Work
+* Documentation
+* Immigration
+* Studies
+* Spiritual Life
+* Marriage
+* Children
+* Grief
+* Travel
+* Ministry
+* Church
+* Deliverance
+* Important Decision
+* Gratitude
+* Other
+
+Allow administrators to create custom categories per group.
+
+---
+
+# 16. Required Screens
+
+Build these screens.
+
+## Public Landing Page
+
+Must include:
+
+* App name
+* Headline
+* Subheadline
+* Language selector
+* Create Account button
+* Sign In button
+* Feature cards
+
+Feature cards:
+
+1. Private Prayer Groups
+2. Secure Prayer Requests
+3. Pray Together
+4. Answered Prayers
+
+---
+
+## Sign-Up Screen
+
+Must include:
+
+* Continue with Google, if available
+* Continue with Apple, if available
+* Continue with Facebook, if feasible
+* Continue with Email
+* Language selector
+
+Email sign-up fields:
+
+* Full name
+* Email
+* Password
+* Confirm password
+
+---
+
+## Login Screen
+
+Must include:
+
+* Continue with Google, if available
+* Continue with Apple, if available
+* Continue with Facebook, if feasible
+* Login with Email
+* Forgot password
+* Create account link
+* Language selector
+
+---
+
+## User Dashboard
+
+Must include:
+
+* Welcome message
+* User’s prayer groups
+* Pending invitations
+* Create Prayer Group button
+* Summary cards
+
+Summary cards:
+
+* Number of groups
+* Number of active prayer requests
+* Number of closed prayer requests
+* Number of answered prayers
+* Number of requests the user committed to pray for
+
+Empty state:
+
+**You are not part of any prayer group yet. Create a group or accept an invitation to get started.**
+
+---
+
+## Create Prayer Group Screen
+
+Fields:
+
+* Group name
+* Description
+* Church/ministry
+* City
+* Verse
+* Image
+* Privacy settings
+
+Default settings:
+
+* Private group enabled
+* Invitation-only enabled
+* Hide prayer person names disabled by default
+* Allow custom categories enabled
+* Allow comments enabled
+* Allow anonymous requests enabled
+* Admins can view anonymous authors configurable
+
+---
+
+## Group Dashboard
+
+Must include:
+
+* Group name
+* Group description
+* Main action: Add Prayer Request
+* Main action: Pray
+* Prayer request list
+* Filters
+* Invite Members button for authorized users
+* Settings button for authorized users
+
+At the top of the group dashboard, show two large primary cards:
+
+Card 1:
+
+Title:
+
+**Add Prayer Request**
+
+Description:
+
+**Share a new request with this prayer group.**
+
+Button:
+
+**Add Request**
+
+Card 2:
+
+Title:
+
+**Pray**
+
+Description:
+
+**Generate a prayer guide from this group’s active requests.**
+
+Button:
+
+**Start Praying**
+
+---
+
+## New Prayer Request Screen
+
+Fields:
+
+* Title
+* Name of the person receiving prayer
+* Category
+* Urgency
+* Description
+* Important date
+* Anonymous request option
+* Allow comments option
+* Privacy warning
+
+Privacy warning:
+
+**To protect people’s privacy, enter the person’s name only in the “Name of the person receiving prayer” field. Avoid placing full names in the description, because the description cannot be automatically hidden.**
+
+Description helper text:
+
+**Share only the information needed for the group to pray responsibly. Avoid including sensitive details such as addresses, phone numbers, document numbers, detailed diagnoses, or full names.**
+
+---
+
+## Prayer Request Detail Screen
+
+Must include:
+
+* Title
+* Category
+* Urgency
+* Status
+* Closure reason, if closed
+* Person receiving prayer, respecting privacy settings
+* Description
+* Author, unless anonymous
+* Created date
+* Important date
+* I am praying button
+* People praying counter
+* Comments
+* Updates
+* Add Update button
+* Close Request option
+* Archive option for authorized users
+
+---
+
+## Add Update / Close Request Form
+
+When adding an update, allow the user to also change the request status.
+
+Fields:
+
+* Update message
+* Request status after this update:
+
+  * Keep Active
+  * Move to Follow-Up
+  * Close Request
+
+If user selects Close Request, show:
+
+**Reason for closing**
+
+Options:
+
+* No Longer Needed
+* Answered Prayer
+
+If Answered Prayer is selected, show optional field:
+
+**Testimony or answer details**
+
+Placeholder:
+
+**Share how this prayer was answered, if you would like.**
+
+If No Longer Needed is selected, show optional field:
+
+**Closing note**
+
+Placeholder:
+
+**Add a short note about why this request no longer needs prayer, if appropriate.**
+
+---
+
+## Members Screen
+
+Must include:
+
+* Member list
+* Name
+* Email
+* Role
+* Join date
+* Status
+
+Admin actions:
+
+* Change role
+* Remove member
+* Invite member
+
+---
+
+## Invitations Screen
+
+Must include:
+
+* Pending invitations
+* Accepted invitations
+* Expired invitations
+* Revoked invitations
+* Generate private link
+* Revoke invitation
+
+---
+
+## Categories Screen
+
+Must include:
+
+* Default categories
+* Custom categories
+* Create category
+* Edit category
+* Activate/deactivate category
+
+---
+
+## Group Settings Screen
+
+Must include:
+
+* Group name
+* Description
+* Image
+* Verse
+* Hide names of people receiving prayer
+* Allow comments
+* Allow custom categories
+* Allow anonymous requests
+* Admins can view anonymous authors
+* Manage permissions
+
+---
+
+## User Profile and Settings
+
+Must include:
+
+* Full name
+* Email
+* Profile picture
+* Phone
+* Church/ministry
+* City
+* Preferred language
+* Connected login providers
+* Logout
+
+---
+
+# 17. Prayer Request Privacy Rules
+
+Create a separate field:
+
+**Name of the person receiving prayer**
+
+This field must be encrypted in the database.
+
+Also store initials separately for privacy display.
+
+If group setting `hide_prayer_person_names` is enabled:
+
+* Display only initials everywhere.
+* Do not display the full name in lists, details, Prayer Mode, notifications, history, or summaries.
+
+Examples:
+
+* Maria Oliveira Santos → M.O.S.
+* John Smith → J.S.
+* Ana Clara → A.C.
+* John → J.
+
+The request description must not be automatically modified.
+
+Always recommend that users place names only in the dedicated name field.
+
+---
+
+# 18. Anonymous Prayer Requests
+
+Allow the author to choose:
+
+**Publish this request anonymously within the group**
+
+When enabled:
+
+* Members can see the request.
+* Members cannot see who created it.
+* Administrators may see the real author only if group settings allow it.
+
+Group settings:
+
+* Allow anonymous requests: yes/no
+* Admins can view anonymous authors: yes/no
+
+---
+
+# 19. Prayer Request Interactions
+
+## I Am Praying
+
+Each prayer request must have a button:
+
+**I am praying**
+
+When clicked:
+
+* Record that the user committed to pray for that request.
+* Show a counter.
+
+Example:
+
+**5 people are praying**
+
+If current user already clicked:
+
+**You are praying for this request**
+
+Allow undo.
+
+---
+
+## Comments
+
+If comments are enabled:
+
+* Members can comment.
+* Users can delete their own comments.
+* Administrators can remove inappropriate comments.
+* Moderators can remove comments if allowed.
+
+Comments must be encrypted before storing.
+
+---
+
+## Updates
+
+The request author can add updates.
+
+Administrators and moderators may add updates if allowed by group settings.
+
+Updates must be encrypted before storing.
+
+Updates should appear as a timeline inside the request detail page.
+
+---
+
+# 20. Prayer Mode
+
+Each group must have a dedicated **Prayer Mode**.
+
+The user enters Prayer Mode by clicking:
+
+**Pray**
+
+Prayer Mode helps users pray through active and follow-up requests.
+
+Prayer Mode must include:
+
+1. Compact Prayer
+2. Detailed Prayer
+
+By default, Prayer Mode includes only:
+
+* Active requests
+* Follow-Up requests
+
+Closed and archived requests must not appear by default.
+
+A separate optional section may show:
+
+**Recently Closed Requests**
+
+Only show this if the user enables it.
+
+Prayer Mode must respect:
+
+* Group membership
+* Hidden names
+* Anonymous authors
+* Encrypted data access
+* Group permissions
+
+---
+
+# 21. Compact Prayer
+
+Compact Prayer generates a summarized prayer guide based on all active and follow-up requests.
+
+Compact Prayer must group requests by category.
+
+For each category, show:
+
+* Category name
+* Number of active/follow-up requests
+* Number of urgent requests
+* Number of important requests
+* Names or initials of people receiving prayer, based on group privacy setting
+* Short generalized prayer focus
+* Urgent requests highlighted separately
+
+Compact Prayer must avoid excessive individual details.
+
+It should be a prayer guide, not a full report.
+
+Example:
+
+**Health — 6 requests**
+
+Pray for: J.S., Maria, A.C., R.P., D.M., and one anonymous request.
+
+Summary:
+
+Pray for healing, strength during medical treatment, wisdom for doctors, peace for families, and full recovery.
+
+Urgent:
+
+* J.S. has an urgent health-related request.
+* One anonymous request is marked as urgent.
+
+If names are hidden, show only initials.
+
+Do not reveal anonymous request authors.
+
+Do not expose unnecessary sensitive details.
+
+---
+
+# 22. Detailed Prayer
+
+Detailed Prayer generates a full prayer guide.
+
+For each request, include:
+
+* Prayer person name or initials
+* Request title
+* Category
+* Urgency
+* Description
+* Latest updates
+* Important date, if available
+* Suggested prayer focus
+* Number of people praying
+* Status
+* Date created
+
+The suggested prayer focus should be generated only from provided request details.
+
+Do not invent facts.
+
+Example request:
+
+**Pray for John’s surgery on Friday.**
+
+Suggested prayer focus:
+
+**Pray for peace before the surgery, wisdom for the medical team, protection during the procedure, and a smooth recovery.**
+
+Do not invent medical details, family details, or outcomes.
+
+---
+
+# 23. Prayer Mode Organization
+
+Before generating Detailed Prayer, allow the user to choose organization.
+
+## Sort by Priority
+
+Order:
+
+1. Urgent
+2. Important
+3. Normal
+
+Within each urgency level, default to oldest first.
+
+## Group by Category
+
+Group requests by category.
+
+Within each category, order by:
+
+1. Urgent
+2. Important
+3. Normal
+
+## Filters
+
+Allow filters:
+
+* All active requests
+* Urgent only
+* Important and urgent
+* Requests I have not prayed for yet
+* Requests I am already praying for
+* Category
+* Created by me
+* Anonymous requests
+* Requests with recent updates
+
+---
+
+# 24. Prayer Session Experience
+
+Create a calm, focused prayer session interface.
+
+Show:
+
+* Group name
+* Selected prayer mode
+* Selected organization
+* Active filters
+* Progress indicator
+* Prayer content
+* Button: Mark as Prayed
+* Button: Next Request
+* Button: Exit Prayer Mode
+
+## Mark as Prayed
+
+For each prayer request in Detailed Prayer, allow:
+
+**Mark as Prayed**
+
+This records that the user prayed for that request during this specific session.
+
+This is different from **I am praying**.
+
+* **I am praying** means the user is committed to praying for that request.
+* **Mark as Prayed** means the user prayed for the request during a specific prayer session.
+
+Both must be supported.
+
+## Completion Screen
+
+When session is completed, show:
+
+**Prayer session completed.**
+
+Summary:
+
+* Number of requests prayed for
+* Number of categories covered
+* Duration of the session
+* Requests marked as prayed
+
+Optional closing message:
+
+**Thank you for standing in prayer with this group.**
+
+Buttons:
+
+* Return to Group
+* Start Another Prayer Session
+
+## Empty State
+
+If there are no active or follow-up requests:
+
+**There are no active prayer requests in this group right now.**
+
+Secondary message:
+
+**You can add a new prayer request or review answered prayers in the history.**
+
+Buttons:
+
+* Add Prayer Request
+* View Prayer History
+
+---
+
+# 25. Notifications
+
+For the MVP, create internal app notifications.
+
+Notify users when:
+
+* They are invited to a group.
+* A new prayer request is created in a group they belong to.
+* Someone comments on their request.
+* Someone adds an update to a request they are praying for.
+* A request is closed as Answered Prayer.
+* A member accepts a group invitation.
+
+Do not send email, push, or WhatsApp notifications in the MVP unless very simple.
+
+Prepare the structure for future:
+
+* Email
+* Push notifications
+* WhatsApp
+
+---
+
+# 26. Prayer History and Testimonies
+
+Closed requests should be available in group history.
+
+When a request is closed as **Answered Prayer**, allow the author to add testimony.
+
+Testimony fields:
+
+* What happened?
+* Share testimony with group: yes/no
+* Date of answer
+
+Answered prayer history should show:
+
+* Title
+* Category
+* Prayer person name or initials, based on privacy settings
+* Date created
+* Date closed
+* Testimony, if shared
+
+Requests closed as **No Longer Needed** should appear in history labeled:
+
+**No Longer Needed**
+
+---
+
+# 27. Required Translation Keys
+
+Create translation files for English, Portuguese, and Spanish.
+
+Use the same keys in all languages.
+
+Start with these English keys:
+
+```json
+{
+  "app.name": "Warrior Prayers",
+  "app.subtitle": "Private prayer groups for care and intercession.",
+  "auth.continueWithApple": "Continue with Apple",
+  "auth.continueWithGoogle": "Continue with Google",
+  "auth.continueWithFacebook": "Continue with Facebook",
+  "auth.continueWithEmail": "Continue with Email",
+  "auth.loginWithEmail": "Login with Email",
+  "auth.createAccount": "Create Account",
+  "auth.forgotPassword": "Forgot password?",
+  "auth.signIn": "Sign In",
+  "auth.logout": "Logout",
+  "dashboard.welcome": "Welcome",
+  "dashboard.noGroups": "You are not part of any prayer group yet. Create a group or accept an invitation to get started.",
+  "groups.create": "Create Prayer Group",
+  "groups.inviteMembers": "Invite Members",
+  "groups.settings": "Group Settings",
+  "group.actions.addPrayerRequest": "Add Prayer Request",
+  "group.actions.addPrayerRequestDescription": "Share a new request with this prayer group.",
+  "group.actions.pray": "Pray",
+  "group.actions.prayDescription": "Generate a prayer guide from this group’s active requests.",
+  "prayers.new": "New Prayer Request",
+  "prayers.title": "Title",
+  "prayers.description": "Description",
+  "prayers.personReceivingPrayer": "Name of the person receiving prayer",
+  "prayers.category": "Category",
+  "prayers.urgency": "Urgency",
+  "prayers.iAmPraying": "I am praying",
+  "prayers.youArePraying": "You are praying for this request",
+  "prayers.peopleArePraying": "people are praying",
+  "prayers.addUpdate": "Add Update",
+  "prayers.closeRequest": "Close Request",
+  "prayerRequest.update.keepActive": "Keep this request active",
+  "prayerRequest.update.moveToFollowUp": "Move to follow-up",
+  "prayerRequest.update.closeRequest": "Close this request",
+  "prayerRequest.closureReason": "Reason for closing",
+  "prayerRequest.closure.noLongerNeeded": "No Longer Needed",
+  "prayerRequest.closure.answeredPrayer": "Answered Prayer",
+  "prayerRequest.testimony": "Testimony or answer details",
+  "prayerRequest.closingNote": "Closing note",
+  "prayerMode.title": "Prayer Mode",
+  "prayerMode.compact": "Compact Prayer",
+  "prayerMode.detailed": "Detailed Prayer",
+  "prayerMode.sortByPriority": "Sort by Priority",
+  "prayerMode.groupByCategory": "Group by Category",
+  "prayerMode.startPraying": "Start Praying",
+  "prayerMode.markAsPrayed": "Mark as Prayed",
+  "prayerMode.nextRequest": "Next Request",
+  "prayerMode.exit": "Exit Prayer Mode",
+  "prayerMode.completed": "Prayer session completed.",
+  "prayerMode.noActiveRequests": "There are no active prayer requests in this group right now.",
+  "settings.language": "Language",
+  "settings.privacy": "Privacy Settings",
+  "settings.hidePrayerPersonNames": "Hide names of people receiving prayer",
+  "categories.health": "Health",
+  "categories.family": "Family",
+  "categories.finances": "Finances",
+  "categories.work": "Work",
+  "categories.documentation": "Documentation",
+  "categories.immigration": "Immigration",
+  "categories.studies": "Studies",
+  "categories.spiritualLife": "Spiritual Life",
+  "categories.marriage": "Marriage",
+  "categories.children": "Children",
+  "categories.grief": "Grief",
+  "categories.travel": "Travel",
+  "categories.ministry": "Ministry",
+  "categories.church": "Church",
+  "categories.deliverance": "Deliverance",
+  "categories.importantDecision": "Important Decision",
+  "categories.gratitude": "Gratitude",
+  "categories.other": "Other"
+}
+```
+
+Create equivalent Portuguese and Spanish translations.
+
+---
+
+# 28. Security Requirements
+
+Implement at least:
+
+* Required authentication
+* Protected routes
+* Backend permission validation
+* Group-based access control
+* Secure password hashing if using email/password
+* HTTPS in deployment
+* SQL injection protection
+* XSS protection
+* CSRF protection if applicable
+* Secure session management
+* Encrypted sensitive fields
+* No sensitive data in logs
+* No private data in public routes
+* Audit logs for sensitive administrative actions
+
+Every backend route that accesses group data must check membership.
+
+Every route that modifies group data must check role/permission.
+
+Do not rely only on frontend checks.
+
+---
+
+# 29. Business Rules
+
+1. Unauthenticated users cannot access internal areas.
+2. Users only see groups where they are active members.
+3. Users only see requests from groups where they are active members.
+4. Users can only create requests inside groups where they are members.
+5. Users can only invite members if they are admins or authorized moderators.
+6. Only admins can remove members by default.
+7. Only admins can change group settings.
+8. The group creator cannot be removed unless primary administration is transferred.
+9. Names of people receiving prayer must respect the group privacy setting.
+10. Descriptions must not be used for automatic name hiding.
+11. Anonymous requests must hide the author from regular members.
+12. Closed requests must leave the active list and move to history.
+13. Archived requests must be hidden from the main list.
+14. Custom categories are specific to each group.
+15. All permissions must be enforced on the backend.
+16. Prayer Mode must never include requests the user cannot access.
+17. Compact Prayer must not leak hidden names or unnecessary sensitive details.
+18. Detailed Prayer must respect anonymous authorship and hidden names.
+19. Closed requests must require a closure reason.
+20. Users must be able to change their preferred language.
+
+---
+
+# 30. Build Phase 1 — Foundation
+
+First, build only the foundation.
+
+Implement:
+
+* Project structure
+* Dark orange mobile-first layout
+* Landing page
+* Login page
+* Sign-up page
+* Protected app shell
+* User dashboard placeholder
+* Language selector structure
+* Basic i18n files
+* Database schema/migrations
+* Basic authentication
+* User profile table/model
+* Protected routes
+
+Do not implement Prayer Mode yet.
+
+Do not implement comments yet.
+
+Do not implement advanced reports yet.
+
+After Phase 1, verify the app runs.
+
+---
+
+# 31. Build Phase 2 — Groups and Invitations
+
+Implement:
+
+* Create prayer group
+* User’s group list
+* Group dashboard
+* Group settings
+* Group members
+* Group roles
+* Invite members by email
+* Private invitation link
+* Accept invitation
+* Reject invitation
+* Revoke invitation
+* Backend membership validation
+
+After Phase 2, verify:
+
+* A user can create a group.
+* The creator becomes admin.
+* A user outside the group cannot access the group.
+* Invited users can join.
+* Non-members are denied.
+
+---
+
+# 32. Build Phase 3 — Prayer Requests
+
+Implement:
+
+* Create prayer request
+* Prayer request list
+* Prayer request details
+* Default categories
+* Custom categories
+* Urgency levels
+* Anonymous requests
+* Hide names by initials
+* I am praying button
+* Prayer commitment counter
+* Comments
+* Updates
+* Close request during update
+* Closure reasons:
+
+  * No Longer Needed
+  * Answered Prayer
+* Prayer history
+
+Encrypt sensitive fields.
+
+After Phase 3, verify:
+
+* Requests appear only inside the correct group.
+* Non-members cannot access requests.
+* Hidden names show only initials.
+* Anonymous authors are hidden from regular members.
+* Closed requests move to history.
+
+---
+
+# 33. Build Phase 4 — Prayer Mode
+
+Implement:
+
+* Group dashboard action: Pray
+* Compact Prayer
+* Detailed Prayer
+* Sort by priority
+* Group by category
+* Prayer filters
+* Prayer sessions
+* Prayer session items
+* Mark as Prayed
+* Prayer completion screen
+
+After Phase 4, verify:
+
+* Prayer Mode shows only active and follow-up requests.
+* Prayer Mode respects hidden names.
+* Prayer Mode respects anonymous requests.
+* Prayer Mode never shows requests from groups where the user is not a member.
+
+---
+
+# 34. Build Phase 5 — Notifications and Polish
+
+Implement:
+
+* Internal notifications
+* Mobile navigation
+* Desktop sidebar
+* Responsive polish
+* Empty states
+* Loading states
+* Error states
+* Confirmation modals
+* Basic audit logs
+* Profile/settings page
+* Connected provider UI placeholder if not implemented
+
+---
+
+# 35. Build Phase 6 — Security Review
+
+Review the entire app for security.
+
+Check:
+
+* Protected routes
+* Backend authorization
+* Group membership validation
+* SQL injection protection
+* XSS protection
+* Secure sessions
+* Encryption of sensitive fields
+* Environment variables
+* Audit logs
+* No sensitive data exposed in logs
+* No group data leakage
+* No hidden names leaked in Prayer Mode
+* No anonymous authors leaked to regular members
+
+Create a security checklist and fix issues found.
+
+---
+
+# 36. MVP Acceptance Criteria
+
+The MVP is complete when:
+
+1. A user can create an account.
+2. A user can log in.
+3. A user can log out.
+4. A user can select English, Portuguese, or Spanish.
+5. The selected language is saved.
+6. A user can create a private prayer group.
+7. The group creator becomes administrator.
+8. The administrator can invite another user.
+9. The invited user can accept the invitation.
+10. The invited user can access the group.
+11. A user outside the group cannot access the group.
+12. A member can create a prayer request.
+13. Prayer requests appear only to members of that group.
+14. A user outside the group cannot access prayer requests.
+15. A group can hide names by initials.
+16. Anonymous requests hide the author from regular members.
+17. Sensitive prayer fields are encrypted in the database.
+18. The “I am praying” button works.
+19. The prayer counter works.
+20. Comments work.
+21. Updates work.
+22. A request can be closed during an update.
+23. Closed requests require one closure reason:
+
+    * No Longer Needed
+    * Answered Prayer
+24. Answered prayers can include testimony.
+25. Closed requests move to prayer history.
+26. Compact Prayer works.
+27. Detailed Prayer works.
+28. Prayer Mode can sort by priority.
+29. Prayer Mode can group by category.
+30. Prayer filters work.
+31. Mark as Prayed works.
+32. Prayer session completion works.
+33. Admin, moderator, and member permissions work.
+34. The app works well on mobile.
+35. The app works well on desktop.
+36. No private group data leaks across groups.
+
+---
+
+# 37. Important Instruction to Replit Agent
+
+Prioritize correctness over visual complexity.
+
+Do not overbuild.
+
+Do not add unnecessary features.
+
+Do not create public prayer feeds.
+
+Do not create social media features.
+
+Do not create public group discovery.
+
+Do not store sensitive prayer content in plain text.
+
+Do not skip backend authorization.
+
+If a feature is too complex for the current phase, create a clean placeholder and continue with the MVP.
+
+Always keep the app running after each phase.
+
+Build the app step by step.
