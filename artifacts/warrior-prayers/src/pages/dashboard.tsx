@@ -12,7 +12,7 @@ import { Users, AlertCircle, CheckCircle2, Heart, Inbox, MapPin, Church, Bell, C
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useMemo } from "react";
-import { getRandomVerse } from "@/lib/bibleVerses";
+import { VERSE_COUNT, getVerseByIndex } from "@/lib/bibleVerses";
 
 function RoleBadge({ role }: { role: string }) {
   const { t } = useTranslation();
@@ -29,7 +29,7 @@ function RoleBadge({ role }: { role: string }) {
 }
 
 export default function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [, setLocation] = useLocation();
 
   const { data: user, isLoading: isUserLoading, isError: isUserError, refetch: refetchUser } = useGetMe({
@@ -50,7 +50,8 @@ export default function Dashboard() {
     }
   });
 
-  const dailyVerse = useMemo(() => getRandomVerse(), []);
+  const verseIndex = useMemo(() => Math.floor(Math.random() * VERSE_COUNT), []);
+  const dailyVerse = getVerseByIndex(verseIndex, i18n.language);
 
   useEffect(() => {
     if (user && !user.isProfileComplete) {
