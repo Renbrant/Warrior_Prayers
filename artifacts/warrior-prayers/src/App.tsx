@@ -52,14 +52,19 @@ if (!clerkPubKey) {
   throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
 }
 
+const socialButtonsLayout = {
+  layout: {
+    socialButtonsPlacement: "top" as const,
+  },
+} as const;
+
 const clerkAppearance = {
-  theme: shadcn,
+  baseTheme: shadcn,
   cssLayerName: "clerk",
   layout: {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
     logoImageUrl: `${window.location.origin}${basePath}/logo.png`,
-    socialButtonsVariant: "blockButton" as const,
     socialButtonsPlacement: "top" as const,
   },
   variables: {
@@ -91,9 +96,7 @@ const clerkAppearance = {
     alertText: "text-[#f8f9fa]",
     logoBox: "mb-8",
     logoImage: "w-12 h-12 mx-auto",
-    socialButtonsBlockButton: "!text-[#f8f9fa] border-[#20232c] bg-[#20232c] hover:bg-[#20232c]/80 h-12 rounded-xl",
-    socialButtonsIconButton: "border-[#20232c] bg-[#20232c] hover:bg-[#20232c]/80 h-12 w-12 rounded-xl",
-    socialButtonsRoot: "gap-2",
+    socialButtonsBlockButton: "!text-[#f8f9fa] border-[#20232c] bg-[#20232c] hover:bg-[#20232c]/80 h-12 rounded-xl w-full justify-start gap-3 px-4",
     formButtonPrimary: "bg-[#e07b2a] hover:bg-[#d97706] text-white font-bold h-12 rounded-full",
     formFieldInput: "bg-[#20232c] border-[#20232c] text-[#f8f9fa] focus:border-[#e07b2a] focus:ring-[#e07b2a] h-12 rounded-xl",
     footerAction: "bg-transparent mt-4",
@@ -121,7 +124,7 @@ function AuthPageShell({ children }: { children: React.ReactNode }) {
 function SignInPage() {
   return (
     <AuthPageShell>
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} appearance={socialButtonsLayout} />
     </AuthPageShell>
   );
 }
@@ -129,7 +132,7 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <AuthPageShell>
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} appearance={socialButtonsLayout} />
     </AuthPageShell>
   );
 }
@@ -203,19 +206,55 @@ function ProtectedAppShell() {
   );
 }
 
+const clerkSocialButtonsCSS = `
+  [class*="socialButtons"]:not(button):not([class*="Text"]):not([class*="Icon"]):not([class*="Provider"]):not([class*="Block"]) {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  [class*="socialButtonsIconButton"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    border-radius: 12px !important;
+    background: #20232c !important;
+    border: 1px solid #20232c !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    gap: 12px !important;
+    color: #f8f9fa !important;
+    flex: unset !important;
+  }
+  [class*="socialButtonsIconButton"]::after {
+    font-weight: 600;
+    font-size: 14px;
+    color: #f8f9fa;
+    white-space: nowrap;
+  }
+  [class*="socialButtonsIconButton__apple"]::after { content: "Continuar com Apple"; }
+  [class*="socialButtonsIconButton__google"]::after { content: "Continuar com Google"; }
+  [class*="socialButtonsIconButton__x"]::after { content: "Continuar com X"; }
+`;
+
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
   return (
-    <ClerkProvider
-      publishableKey={clerkPubKey}
-      proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
-      signInUrl={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
-    >
+    <>
+      <style>{clerkSocialButtonsCSS}</style>
+      <ClerkProvider
+        publishableKey={clerkPubKey}
+        proxyUrl={clerkProxyUrl}
+        appearance={clerkAppearance}
+        signInUrl={`${basePath}/sign-in`}
+        signUpUrl={`${basePath}/sign-up`}
+        routerPush={(to) => setLocation(stripBase(to))}
+        routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+      >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
         <Switch>
@@ -236,6 +275,7 @@ function ClerkProviderWithRoutes() {
         </Switch>
       </QueryClientProvider>
     </ClerkProvider>
+    </>
   );
 }
 

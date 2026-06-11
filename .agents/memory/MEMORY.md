@@ -2,3 +2,4 @@
 - [Orval schema naming collision](orval-schema-collision.md) — Orval auto-names Zod consts `{operationId}Body`; OpenAPI schemas must not share those names.
 - [Drizzle params typing](drizzle-params-typing.md) — Express `req.params` is `string | string[]`; always use `String(req.params.x)` before passing to Drizzle `eq()`.
 - [Object Storage Setup](object-storage-setup.md) — composite tsconfig quirk, pnpm overrides for Uppy v5, serving URL pattern; bucket already provisioned.
+- [Clerk v6 social buttons layout](clerk-social-buttons-layout.md) — force icon buttons into labeled full-width column via global `<style>` + `::after` pseudo-elements; target both `cl-socialButtons` AND `cl-socialButtonsRoot`.
