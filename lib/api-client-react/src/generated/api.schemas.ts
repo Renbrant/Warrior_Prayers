@@ -552,8 +552,7 @@ export const PrayerUpdateInputClosureReason = {
 } as const;
 
 export interface PrayerUpdateInput {
-  /** @minLength 1 */
-  updateText: string;
+  updateText?: string;
   newStatus?: PrayerUpdateInputNewStatus;
   closureReason?: PrayerUpdateInputClosureReason;
   testimony?: string;

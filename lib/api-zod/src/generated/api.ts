@@ -773,7 +773,7 @@ export const AddPrayerUpdateParams = zod.object({
 
 
 export const AddPrayerUpdateBody = zod.object({
-  "updateText": zod.string().min(1),
+  "updateText": zod.string().optional(),
   "newStatus": zod.enum(['active', 'follow_up', 'closed', 'archived']).optional(),
   "closureReason": zod.enum(['no_longer_needed', 'answered_prayer']).optional(),
   "testimony": zod.string().optional(),

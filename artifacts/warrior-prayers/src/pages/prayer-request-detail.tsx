@@ -251,7 +251,8 @@ export default function PrayerRequestDetail() {
 
   const handleAddUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!updateText.trim()) return;
+    const isClosing = newStatus === "closed" || newStatus === "archived";
+    if (!isClosing && !updateText.trim()) return;
     if (newStatus === "archived") {
       setPendingArchive(true);
       return;
@@ -682,7 +683,14 @@ export default function PrayerRequestDetail() {
 
               <Button
                 type="submit"
-                disabled={!updateText.trim() || addUpdate.isPending}
+                disabled={
+                  addUpdate.isPending ||
+                  (newStatus === "keep" || newStatus === "follow_up"
+                    ? !updateText.trim()
+                    : newStatus === "closed"
+                      ? !closureReason
+                      : false)
+                }
                 className="w-full rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90"
                 data-testid="btn-submit-update"
               >

@@ -2087,7 +2087,6 @@ components:
       properties:
         updateText:
           type: string
-          minLength: 1
         newStatus:
           type: string
           enum: [active, follow_up, closed, archived]
@@ -2098,8 +2097,6 @@ components:
           type: string
         closingNote:
           type: string
-      required:
-        - updateText
 
     CommentInput:
       type: object

@@ -974,8 +974,9 @@ router.post(
         closingNote?: string;
       };
 
-      if (!body.updateText?.trim()) {
-        res.status(400).json({ error: "Update text is required" });
+      const isClosingOrArchiving = body.newStatus === "closed" || body.newStatus === "archived";
+      if (!isClosingOrArchiving && !body.updateText?.trim()) {
+        res.status(400).json({ error: "Update text is required when not changing status" });
         return;
       }
 
@@ -1042,7 +1043,7 @@ router.post(
       await db.insert(prayerUpdatesTable).values({
         prayerRequestId: requestId,
         userId,
-        updateTextEncrypted: encrypt(body.updateText.trim()),
+        updateTextEncrypted: encrypt((body.updateText ?? "").trim()),
       });
 
       const [updated] = await db
