@@ -11,7 +11,8 @@ import {
 import { Users, AlertCircle, CheckCircle2, Heart, Inbox, MapPin, Church, Bell, ChevronRight, HandCoins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { getRandomVerse } from "@/lib/bibleVerses";
 
 function RoleBadge({ role }: { role: string }) {
   const { t } = useTranslation();
@@ -48,6 +49,8 @@ export default function Dashboard() {
       enabled: !!user?.isProfileComplete
     }
   });
+
+  const dailyVerse = useMemo(() => getRandomVerse(), []);
 
   useEffect(() => {
     if (user && !user.isProfileComplete) {
@@ -107,6 +110,14 @@ export default function Dashboard() {
           <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
             {t("dashboard.welcome")}, {user.fullName?.split(' ')[0] || 'Warrior'}
           </h1>
+          <blockquote className="mt-3 flex flex-col gap-0.5 border-l-2 border-primary/40 pl-4 max-w-lg">
+            <p className="text-sm sm:text-base text-muted-foreground italic leading-relaxed">
+              "{dailyVerse.text}"
+            </p>
+            <cite className="text-xs sm:text-sm font-semibold text-primary not-italic">
+              — {dailyVerse.reference}
+            </cite>
+          </blockquote>
           {summary.pendingInvitationCount > 0 && (
             <button
               onClick={() => setLocation("/app/invitations")}
